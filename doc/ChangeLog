@@ -12,6 +12,10 @@ Please describe any modifications that you made to the package in the
 reverse time order.
 
 
+Tag: V00-11-05
+2015 10-22 David Schneider
+- add UTESTSEXCL to standard sconscript to exclude unit tests
+	
 Tag: V00-11-04
 2015 10-22 David Schneider
 - add package specific test targets. scons test takes a long time

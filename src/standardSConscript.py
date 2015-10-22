@@ -56,7 +56,9 @@ def standardSConscript( **kw ) :
         BINS - dictionary of executables and their corresponding source files
         TESTS - dictionary of test applications and their corresponding source files
         SCRIPTS - list of scripts in app/ directory
-        UTESTS - names of the unit tests to run, if not given then all tests are unit tests
+        UTESTS - names of the unit tests to run, if not given then all tests are unit tests,
+                 except for those filtered out by UTESTSEXCL
+        UTESTSEXCL - names of unit tests to exclude. Applied after UTESTS filter applied.
         PYEXTMOD - name of the Python extension module, package name used by default
         CCFLAGS - additional flags passed to C/C++ compilers
         NEED_QT - set to True to enable Qt support
@@ -304,6 +306,10 @@ def standardTests( env, **kw ) :
     else :
         # filter matching targets
         utests = [ t for t in targets if os.path.basename(str(t)) in utests ]
+
+    utestsexcl = kw.get('UTESTSEXCL', None)
+    if utestsexcl is not None:
+        utests = [t for t in utests if os.path.basename(str(t)) not in utestsexcl]
 
     # make new unit test target
     trace ( "utests = "+str(map(str,utests)), "SConscript", 2 )
