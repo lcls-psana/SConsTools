@@ -12,6 +12,18 @@ Please describe any modifications that you made to the package in the
 reverse time order.
 
 
+Tag: V00-11-04
+2015 10-22 David Schneider
+- add package specific test targets. scons test takes a long time
+when psana_test or Translator is in the test release. Now one can do
+scons test-Translator or scons test-XtcInput to build just those tests.
+(JIRA PSRT-74)
+	
+2015-07-28 Igor Gaponenko
+- added C++ compiler option '-Wno-unused-local-typedefs' to suppress
+warnings caused by unused definitions within the BOOST library
+(JIRA PSRT-63)
+
 Tag: V00-11-03
 2015-07-28 Igor Gaponenko
 - added C++ compiler option '-Wno-unused-local-typedefs' to suppress
