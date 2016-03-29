@@ -228,11 +228,11 @@ if 'psana-modules-doxy' in env['DOC_TARGETS']:
     docTargets.append(env.Command('doc/psana-modules-doxy/html/index.html', [], commands))
 if 'psana-ref' in env['DOC_TARGETS']:
     modules = env['DOC_TARGETS']['psana-ref']
-    commands = ["rm -rf doc/psana-ref/", "pydoc-driver -p psana -Q -s doc/psana-ref/html "+ ' '.join(modules)]
+    commands = ["rm -rf doc/psana-ref/", "pydoc-driver -p psana -Q -s -S doc/psana-ref/html "+ ' '.join(modules)]
     docTargets.append(env.Command('doc/psana-ref/html/index.html', [], commands))
 if 'pyana-ref' in env['DOC_TARGETS']:
     modules = env['DOC_TARGETS']['pyana-ref']
-    commands = ["rm -rf doc/pyana-ref/", "pydoc-driver -p pyana -Q -s doc/pyana-ref/html "+ ' '.join(modules)]
+    commands = ["rm -rf doc/pyana-ref/", "pydoc-driver -p pyana -Q -s -S doc/pyana-ref/html "+ ' '.join(modules)]
     docTargets.append(env.Command('doc/pyana-ref/html/index.html', [], commands))
 if 'pydoc-all' in env['DOC_TARGETS']:
     modules = env['DOC_TARGETS']['pydoc-all']

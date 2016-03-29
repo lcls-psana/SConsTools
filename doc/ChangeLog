@@ -11,13 +11,16 @@ Package author: Andrei Salnikov
 Please describe any modifications that you made to the package in the
 reverse time order.
 
-
+Tag: V00-11-06
+2016-03-28 Mikhail Dubrovin
+- in SConstruct.main add -S option to pydoc-driver commands which did not have it.
+	
 Tag: V00-11-05
-2015 10-22 David Schneider
+2015-10-22 David Schneider
 - add UTESTSEXCL to standard sconscript to exclude unit tests
 	
 Tag: V00-11-04
-2015 10-22 David Schneider
+2015-10-22 David Schneider
 - add package specific test targets. scons test takes a long time
 when psana_test or Translator is in the test release. Now one can do
 scons test-Translator or scons test-XtcInput to build just those tests.
