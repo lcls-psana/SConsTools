@@ -44,8 +44,11 @@ def buildEnv () :
     destdir = pjoin(sit_root, "sw/releases", sit_release)
 
     # SIT_EXTERNAL_SW
-    sit_external_sw = pjoin(sit_root, "sw/external")
-
+    if os.environ.get('SIT_USE_CONDA',''):        
+        sit_external_sw = os.environ['CONDA_ENV_PATH']
+    else:
+        sit_external_sw = pjoin(sit_root, "sw/external")
+        
     vars = Variables()
     vars.AddVariables(
         ('CPPFLAGS', "User-specified C preprocessor options", ""),
@@ -66,6 +69,7 @@ def buildEnv () :
     # make environment, also make it default
     env = DefaultEnvironment(ENV=os.environ, variables=vars)
     vars.GenerateHelpText(env)
+    env['CONDA']=bool(os.environ.get('SIT_USE_CONDA',''))
 
     # set trace level based on the command line value
     setTraceLevel(int(env['TRACE']))

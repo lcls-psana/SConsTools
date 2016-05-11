@@ -12,109 +12,10 @@ import sys
 from pprint import *
 from os.path import join as pjoin
 
+## Testing - remove
 for k,v in os.environ.iteritems():
     if k.startswith('SIT') or k.find('PATH')>=0 or k.find('PYTHON')>=0 or k.find('CONDA')>=0:
         print '%s=%s' % (k,v)
-
-def _parse_and_validate_sit_release():
-    '''checks that .sit_release looks something like
-
-      ana-0.18.3
-
-    or 
-
-      ana-0.18.3
-      psana_env_path=/reg/g/psdm/conda/miniconda2/env/ana
-      extpkgs=pdsdata,ndarray,psalg
-
-    That is, old style just has the one line with the release,
-    and new style has three lines, the second specifies the 
-    conda env to build against, that is where to construct 
-    external packages provided by conda, and the third
-    specifies external packages built from source within the
-    release
-
-    returns three items:
-      test_release, psana_env_path, extpkgs
-
-    which for the latter example above would be
-
-      'ana-0.18.3', '/reg/g/psdm/conda/miniconda2/env/ana', ['pdsdata', 'ndarray', 'psalg']
-      
-    '''
-    ###### helper functions
-    def read_sit_release_lns():
-        try:
-            sit_release_lns = file('.sit_release').read().strip().split('\n')
-        except IOError:
-            print >> sys.stderr, "File .sit_release does not exist or unreadable."
-            print >> sys.stderr, "Trying to run scons outside release directory?"
-            Exit(2)
-        if len(sit_release_lns)<1 or len(sit_release_lns)>3:
-            print >> sys.stderr, "File .sit_release should have 1 or 3 lines, "
-            print >> sys.stderr, "but it has %d lines." % len(sit_release_lns)
-            print >> sys.stderr, "It appears corrupt - please recreate."
-            Exit(2)
-        sit_release_lns = [ln.strip() for ln in sit_release_lns]
-        return sit_release_lns
-
-    def parse_conda_env_path(ln):
-        if not ln.startswith('conda_env_path='):
-            print >> sys.stderr, ".sit_release line 2 doesn't start with conda_env_path="
-            Exit(2)
-        rel_conda_env_path = ln.split('conda_env_path=')[1].strip()
-        if not len(rel_conda_env_path):
-            print >> sys.stderr, ".sit_release line 2 doesn't specify env after conda_env_path="
-            Exit(2)
-        if not os.environ.get('SIT_USE_CONDA',None):
-            print >> sys.stderr, ".sit_release specifies to use conda, but "
-            print >> sys.stderr, "$SIT_USE_CONDA not set. source ana_conda_env.sh (or .csh)"
-            Exit(2)
-        if 'CONDA_ENV_PATH' not in os.environ:
-            print >> sys.stderr, ".sit_release specifies to use conda, but "
-            print >> sys.stderr, "$CONDA_ENV_PATH not set. run ana_conda_env.sh (or .csh)"
-            print >> sys.stderr, "or activate your own conda environemnt."
-            Exit(2)
-        env_conda_env_path = os.environ['CONDA_ENV_PATH']
-        if len(env_conda_env_path)==0:
-            print >> sys.stderr, "$CONDA_ENV_PATH set but is empty"
-            Exit(2)
-        if not os.environ.get('PATH','').startswith(os.path.join(env_conda_env_path,'bin')):
-            print >> sys.stderr, "$PATH doesn't start with $CONDA_ENV_PATH/bin"
-            Exit(2)
-        if env_conda_env_path != rel_conda_env_path:
-            print >> sys.stderr, "conda_env_path in .sit_setup != $CONDA_ENV_PATH"
-            print >> sys.stderr, "sit_setup -> %s" % rel_conda_env_path
-            print >> sys.stderr, "$CONDA_ENV_PATH -> %s" % env_conda_env_path
-            print >> sys.stderr, "run sit_setup to build against new CONDA_ENV_PATH"
-            Exit(2)
-        return rel_conda_env_path
-
-    def parse_extpkgs(ln):
-        if not ln.startswith('extpkgs='):
-            print >> sys.stderr, "line 3 of .sit_release doesn't start with extpkgs="
-            Exit(2)
-        return [ pkg.strip() for pkg in ln.split('extpkgs=')[1].split(',')]
-        
-        
-    ### end helper functions
-    sit_release_lns = read_sit_release_lns()
-    test_rel = sit_release_lns[0].strip()    
-    if os.environ["SIT_RELEASE"] != test_rel:
-        print >> sys.stderr, "* SIT_RELEASE conflicts with release directory"
-        print >> sys.stderr, "* SIT_RELEASE =", os.environ["SIT_RELEASE"]
-        print >> sys.stderr, "* .sit_release =", test_rel
-        print >> sys.stderr, "* Please run sit_setup or relupgrade"
-        Exit(2)
-
-    conda_env_path = None
-    extpkgs_in_release = []
-    if len(sit_release_lns)==3:
-        conda_env_path = parse_conda_env_path(sit_release_lns[1])
-        extpkgs_in_release = parse_extpkgs(sit_release_lns[2])
-
-    return test_rel, conda_env_path, extpkgs_in_release
-
 
 ########## start SConstruct script ###############
 cwd = os.getcwd()
@@ -124,6 +25,15 @@ for var in ["SIT_ARCH", "SIT_ROOT", "SIT_RELEASE"]:
     if not os.environ.get(var, None):
         print >> sys.stderr, "Environment variable %s is not defined" % var
         Exit(2)
+
+if 'SIT_USE_CONDA' in os.environ:
+    if not 'CONDA_ENV_PATH' in os.environ:
+        print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH is not"
+        Exit(2)
+    if not os.environ.get('PATH','').startswith(os.path.join(os.environ['CONDA_ENV_PATH'], 'bin')):
+        print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH/bin does not start PATH"
+        Exit(2)
+        
 
 sit_arch = os.environ["SIT_ARCH"]
 
@@ -146,13 +56,16 @@ if os.environ.get('SIT_USE_CONDA', None):
     try:
         conda_rel = file('.sit_conda_env').read().strip()
     except IOError:
-        print >> sys.stderr, "SIT_USE_CONDA is true, but file .sit_conda_env does not exist or unreadable."
-        print >> sys.stderr, "building scons in older style release? unset SIT_USE_CONDA"
+        print >> sys.stderr, "SIT_USE_CONDA is true, but file .sit_conda_env " \
+            "does not exist or unreadable."
+        print >> sys.stderr, "building scons in older style release? " \
+            "unset SIT_USE_CONDA"
         Exit(2)
     if os.environ.get("CONDA_ENV_PATH", "") != conda_rel:
         print >> sys.stderr, "* CONDA_ENV_PATH conflicts with release directory."
         print >> sys.stderr, "* They must agree for building."
-        print >> sys.stderr, "* Please run condaupgrade (for now, edit .sit_conda_env file)"
+        print >> sys.stderr, "* Please run condaupgrade" \
+            " (for now, edit .sit_conda_env file)"
         Exit(2)
     
 
