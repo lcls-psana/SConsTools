@@ -70,6 +70,8 @@ def buildEnv () :
     env = DefaultEnvironment(ENV=os.environ, variables=vars)
     vars.GenerateHelpText(env)
     env['CONDA']=bool(os.environ.get('SIT_USE_CONDA',''))
+    if env['CONDA']:
+        env['CONDA_ENV_PATH'] = os.environ['CONDA_ENV_PATH']
 
     # set trace level based on the command line value
     setTraceLevel(int(env['TRACE']))
@@ -101,6 +103,7 @@ def buildEnv () :
     libdir = "${ARCHDIR}/lib"
     pydir = "${ARCHDIR}/python"
     phpdir = "${ARCHDIR}/php"
+    extpkginstdir = "${ARCHDIR}/extpkgs"
     cpppath = ['.']   # this translates to package directory, not to top dir
     for r in all_sit_repos :
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc"))
@@ -114,6 +117,7 @@ def buildEnv () :
                 LIBDIR=libdir,
                 PYDIR=pydir,
                 PHPDIR=phpdir,
+                EXTPKGINSTDIR=extpkginstdir,
                 CPPPATH=cpppath,
                 LIBPATH=libpath,
                 LIB_ABI=lib_abi,

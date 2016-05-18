@@ -124,10 +124,12 @@ def standardExternalPackage(package, **kw) :
     """
 
     pkg = os.path.basename(os.getcwd())
-    trace("Standard SConscript for external package `" + package + "'", "SConscript", 1)
-
     env = DefaultEnvironment()
-
+    if env['CONDA']:
+        trace("Standard CONDA based SConscript for external package `" + package + "'", "SConscript", 1)
+#        prefix = env['CONDA_ENV_PATH']
+    else:
+        trace("Standard SConscript for external package `" + package + "'", "SConscript", 1)
     prefix, arch = _prefix(kw.get('PREFIX'), env)
     trace("prefix, arch: %s, %s" % (prefix, arch), "standardExternalPackage", 3)
     if arch: prefix = os.path.join(prefix, arch)
