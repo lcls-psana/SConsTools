@@ -16,6 +16,8 @@ AUTHORS:
  - Dag Sverre Seljebotn
 
 """
+import os
+from  os.path import join as pjoin
 import SCons
 from SCons.Builder import Builder
 from SCons.Action import Action
@@ -46,9 +48,17 @@ def cython_suffix_emitter(env, source):
 def generate(env):
     
     # cython comes from pyextra package
-    pyextra = "$SIT_EXTERNAL_SW/pyextra-$PYTHON/$SIT_ARCH_BASE_OPT"
-    env["CYTHON"] = pyextra + "/bin/cython"
-    pypath = pyextra + "/lib/$PYTHON/site-packages"
+    if env['CONDA']:
+        cythonbin = pjoin(env['CONDA_ENV_PATH'], 'bin','cython')
+        assert os.path.exists(cythonbin), \
+            "coudn't find cython in this conda env, tried %s" % cythonbin
+        pypath = pjoin(env['CONDA_ENV_PATH'], 'lib', '$PYTHON', 'site-packages')
+    else:
+        pyextra = "$SIT_EXTERNAL_SW/pyextra-$PYTHON/$SIT_ARCH_BASE_OPT"
+        cythonbin = pyextra + "/bin/cython"
+        pypath = pyextra + "/lib/$PYTHON/site-packages"
+
+    env["CYTHON"] = cythonbin
     env["CYTHONCOM"] = "PYTHONPATH=" + pypath + " $CYTHON $CYTHONFLAGS -o $TARGET $SOURCE"
     env["CYTHONCFILESUFFIX"] = ".c"
 

@@ -9,11 +9,18 @@ def generate(env):
 
     #**************************************************
     # This module will also be used outside scons so 
-    # be careful what you use in the code below
+    # be careful what you use in the code below 
+    # see __main__ below, env may just be a dictonary, not scons env
     #**************************************************
     
-    prefix = pjoin(env['SIT_EXTERNAL_SW'], "python/2.7.10", env['SIT_ARCH_BASE_OPT'])
-    version = "2.7"
+    if env.get('CONDA',False):
+        prefix = env['CONDA_ENV_PATH']
+        version = '%d.%d' % (sys.version_info.major, 
+                             sys.version_info.minor)
+    else:
+        prefix = pjoin(env['SIT_EXTERNAL_SW'], "python/2.7.10", env['SIT_ARCH_BASE_OPT'])
+        version = "2.7"
+
     libdir = "lib"
     
     env['PYTHON_PREFIX'] = prefix
@@ -40,7 +47,13 @@ def exists(env):
 # This is very special use case for this module outside scons
 #
 if __name__ == '__main__':
-    
+    conda = False
+    conda_env_path = ''
+    if 'SIT_USE_CONDA' in os.environ and str(os.environ['SIT_USE_CONDA']) != '0':
+        conda = True
+        conda_env_path = os.environ.get('CONDA_ENV_PATH','')
+        assert len(conda_env_path) and os.path.exists(conda_env_path), \
+            "SIT_USE_CONDA is true, but conda_env_path isn't set or doesn't exist"
     sit_external_sw = pjoin(os.environ['SIT_ROOT'], "sw", "external")
     sit_arch = os.environ['SIT_ARCH']
     sit_arch_split = sit_arch.split('-')
@@ -48,7 +61,8 @@ if __name__ == '__main__':
     sit_arch_base = '-'.join(sit_arch_split[:3])
     sit_arch_base_opt = sit_arch_base + '-opt'
     env = dict(SIT_ARCH=sit_arch, SIT_ARCH_OS=sit_arch_os, SIT_ARCH_BASE=sit_arch_base, 
-               SIT_ARCH_BASE_OPT=sit_arch_base_opt, SIT_EXTERNAL_SW=sit_external_sw)
+               SIT_ARCH_BASE_OPT=sit_arch_base_opt, SIT_EXTERNAL_SW=sit_external_sw,
+               CONDA=conda, CONDA_ENV_PATH=conda_env_path)
     
     generate(env)
     

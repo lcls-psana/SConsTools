@@ -72,6 +72,7 @@ def buildEnv () :
     env['CONDA']=bool(os.environ.get('SIT_USE_CONDA',''))
     if env['CONDA']:
         env['CONDA_ENV_PATH'] = os.environ['CONDA_ENV_PATH']
+        env['SKIP_BUILD_EXT'] = os.environ.get('SIT_SKIP_BUILD_EXT',False)
 
     # set trace level based on the command line value
     setTraceLevel(int(env['TRACE']))
@@ -100,7 +101,7 @@ def buildEnv () :
     archdir = pjoin("#arch/", sit_arch)
     archincdir = "${ARCHDIR}/geninc"
     bindir = "${ARCHDIR}/bin"
-    libdir = "${ARCHDIR}/lib"
+    libdir = "${ARCHDIR}/lib"    
     pydir = "${ARCHDIR}/python"
     phpdir = "${ARCHDIR}/php"
     extpkginstdir = "${ARCHDIR}/extpkgs"
@@ -109,6 +110,8 @@ def buildEnv () :
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc"))
         cpppath.append(pjoin(r, "include"))
     libpath = [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
+    if env['CONDA']:
+        libpath.append(pjoin(env['CONDA_ENV_PATH'],'lib'))
 
     # set other variables in environment
     env.Replace(ARCHDIR=archdir,
@@ -166,8 +169,9 @@ def buildEnv () :
     # use alternative location for sconsign file
     env.SConsignFile(pjoin("build", sit_arch, ".sconsign"))
 
-    # may want to use "relative" RPATH
-    # env.Replace( RPATH = env.Literal("'$$ORIGIN/../lib'") )
+    if env['CONDA']:
+        env.Replace( RPATH = pjoin(env['CONDA_ENV_PATH'], 'lib'))
+#env.Literal("'$$ORIGIN/../lib'") )
 
     # these lists will be filled by standard rules
     env['ALL_TARGETS']['INCLUDES'] = []
