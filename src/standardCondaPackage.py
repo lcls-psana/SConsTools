@@ -28,21 +28,41 @@ from standardExternalPackage import standardExternalPackage
 # for compiling and linking.
 #
 
-def condaPackageExists(pkg):
-    env = DefaultEnvironment()
-    cm = condaMeta(pkg, mustExist=False)
-    return cm.exists
+class _NoArg(object):
+    def __init__(self):
+        pass
+_noArg = _NoArg()
 
-def _as_list_strings(arg):
+def _as_list_strings_or_none(arg):
+    if arg is None: return None
     if isinstance(arg,list): return arg
-    if arg is None: return []
     return arg.split()
 
+def _commonDirectory(filenames):
+    commonprefix = os.path.commonprefix(filenames)
+    if commonprefix.endswith(os.path.sep):
+        return commonprefix[0:-1]
+        
+    # all the file basenames start with the same thing (like 'H5_') 
+    # strip that off to find the common directory
+    flds = commonprefix.split(os.path.sep)
+    flds=flds[0:-1]
+    return os.path.sep.join(flds)
+
 def standardCondaPackage(pkg, **kw) :
-    """ Creates a external package from a conda package.
-        INCDIR  - include come from entire subdir, link whole subdir
-        INCLUDES - specific list of includes to copy (space-separated list of patterns)
-                   defaults to all in conda-meta, set to [] for no includes
+    """ Creates a external package from a conda package. 
+    The external package can have includes and libraries, but no binaries or
+    Python - those come from the conda environment.
+
+    By default, reads the conda meta for the package to identify the includes (.h
+    files) and dynamic libries. Those are added to the release.
+
+        INCDIR  - directly specify include dir relative to conda env prefix - 
+                  for example 'include/boost' 
+        INCLUDES - directly specify list of includes to copy (space-separated list of patterns)
+                   relative to INCDIR (if given) or relative to conda env prefix)
+        INCLUDE_EXTS - if neither INCDIR or INCLUDES is specified, all conda meta files
+                       with these extensions are used (defaults to .h)
         COPYLIBS - library names to copy, deafults to none
         LINKLIBS - library names to link, 
                     defaults to all dynlibs in conda meta
@@ -60,46 +80,76 @@ def standardCondaPackage(pkg, **kw) :
     condaMeta = CondaMeta(pkg)
     PREFIX = condaMeta.prefix()
     trace("standardCondaPackage pkg=%s prefix=%s" % (pkg, PREFIX), "SConscript", 1)
-    INCDIR = kw.get('INCDIR', None)
-    INCLUDES = kw.get('INCLUDES', None)
-    if (not INCDIR) and (not INCLUDES):
-        includes = condaMeta.includes()
-        commonprefix = os.path.commonprefix(includes).split(os.path.sep)[0]
-        if commonprefix:
-            INCDIR = os.path.join('include',commonprefix)
-            trace("  pkg=%s auto setting INCDIR=%s" % 
-                  (pkg, INCDIR), "SConscript", 2)
-        else:
-            INCLUDES = includes
-            trace("  pkg=%s auto setting INCLUDES to list of %d files" % 
-                  (pkg, len(INCLUDES)), "SConscript", 2)
-    else:
-        trace("  one of INCDIR or INCLUDES specified", "SConscript", 2)
-
-    COPYLIBS = kw.get('COPYLIBS',None)
-    LINKLIBS = kw.get('LINKLIBS',None)
+    incdir = kw.get('INCDIR', _noArg)
+    includes = kw.get('INCLUDES', _noArg)
     
-    if (not COPYLIBS) and (not LINKLIBS):
+    if (incdir is _noArg) and (includes is _noArg):
+        include_exts = _as_list_strings_or_none(kw.get('INCLUDE_EXTS', ['.h']))
+        includes = condaMeta.includes(extensions=include_exts)
+        trace("standardCondaPackage pkg=%s auto includes - %d files" % (pkg, len(includes)), "SConscript", 1)
+        if includes:
+            commondir = _commonDirectory(includes)
+            dirlist = commondir.split(os.path.sep)
+            # we don't want to link a top level dir of a condenv like 'include' or 'lib'
+            # only link if pkg is in the path, not so robust, 
+            if len(dirlist)>1 and pkg in dirlist:
+                INCDIR = commondir
+                trace("  pkg=%s auto setting INCDIR=%s" % (pkg, INCDIR), "SConscript", 2)
+            else:            
+                INCDIR = condaMeta.prefix()
+                INCLUDES = includes
+                trace("  pkg=%s auto setting INCLUDES to list of %d files and INCDIR=%s" % 
+                      (pkg, len(INCLUDES), INCDIR), "SConscript", 2)
+    else:
+        trace("  pkg=%s one of INCDIR or INCLUDES specified" % pkg, "SConscript", 2)
+        if includes is not _noArg:
+            INCLUDES = kw['INCLUDES']
+        if incdir is not _noArg:
+            INCDIR = kw['INCDIR']
+            assert len(INCDIR)>0 and INCDIR[0] != os.path.sep, "use relative paths for conda"
+
+    copylibs = kw.get('COPYLIBS',_noArg)
+    linklibs = kw.get('LINKLIBS',_noArg)
+    
+    if (copylibs is _noArg) and (linklibs is _noArg):
         LINKLIBS = condaMeta.dynlibs()
         trace("  pkg=%s auto setting LINKLIBS to list of %d files" % 
               (pkg,len(LINKLIBS)), "SConscript", 2)
 
-    PKGLIBS = _as_list_strings(kw.get('REQUIRED_PKGLIBS', None))
-    if not PKGLIBS:
-        PKGLIBS = condaMeta.pkglibs()
+    metaPkgs = condaMeta.pkglibs()
+    pkglibs = False
+    if kw.get('REQUIRED_PKGLIBS', _noArg) is _noArg:
+        PKGLIBS = metaPkgs
+        pkglibs = True
+    else:
+        required_pkglibs = _as_list_strings_or_none(kw['REQUIRED_PKGLIBS'])
+        if required_pkglibs:
+            PKGLIBS = required_pkglibs
+            pkglibs = True
 
-    EXPECTED_PKGLIBS = _as_list_strings(kw.get('EXPECTED_PKGLIBS', None))
-    if EXPECTED_PKGLIBS:
-        metaPkgs = set(condaMeta.pkglibs())
-        for exppkg in EXPECTED_PKGLIBS:
-            if exppkg in metaPkgs and exppkg not in PKGLIBS:
-                PKGLIBS.append(exppkg)
+    pkgs_to_add_if_present = _as_list_strings_or_none(kw.get('EXPECTED_PKGLIBS', None))
+    if pkgs_to_add_if_present:
+        for pkg_to_add in pkgs_to_add_if_present:
+            if pkglibs and pkg_to_add in PKGLIBS:
+                continue
+            if pkg_to_add in metaPkgs:
+                if not pkglibs:
+                    PKGLIBS=[pkg_to_add]
+                    pkglibs = True
+                else:
+                    PKGLIBS.append(pkg_to_add)
             else:
-                warn("expected pkglib=%s not found in conda meta for pkg=%s" % \
-                     (exppkg, pkg))
+                warning("expected pkglib=%s not found in conda meta for pkg=%s" % \
+                        (pkg_to_add, pkg))
 
-    DEPS = kw.get('DEPS',None)
-    DOCGEN = kw.get('DOCGEN',None)
+    if kw.get('DEPS', _noArg) is not _noArg:
+        DEPS = kw['DEPS']
+    if kw.get('DOCGEN', _noArg) is not _noArg:
+        DOCGEN = kw['DOCGEN']
 
+    if pkg == 'hdf5':
+        warning('hdf5 includes=%s' % ','.join(includes))
+        warning('hdf5 incdir=%s' % incdir)
+        
     standardExternalPackage(pkg, **locals())
     return PREFIX

@@ -19,6 +19,7 @@ from SConsTools.trace import *
 from SConsTools.dependencies import *
 
 from scons_functions import fail, warning
+from SConsTools.CondaMeta import CondaMeta
 
 #
 # This is an interface package for the external package. We wan to make
@@ -123,17 +124,28 @@ def standardExternalPackage(package, **kw) :
                    file/directory names as values (may also be a string).
     """
 
-    pkg = os.path.basename(os.getcwd())
+    pkgBasename = os.path.basename(os.getcwd())
     env = DefaultEnvironment()
-    if env['CONDA']:
-        trace("Standard CONDA based SConscript for external package `" + package + "'", "SConscript", 1)
-#        prefix = env['CONDA_ENV_PATH']
-    else:
-        trace("Standard SConscript for external package `" + package + "'", "SConscript", 1)
+
+    trace("Standard SConscript for external package `" + package + "'", "SConscript", 1)
     prefix, arch = _prefix(kw.get('PREFIX'), env)
     trace("prefix, arch: %s, %s" % (prefix, arch), "standardExternalPackage", 3)
     if arch: prefix = os.path.join(prefix, arch)
     trace("prefix: %s" % prefix, "standardExternalPackage", 3)
+
+    if env['CONDA']:
+        cm = CondaMeta(package, mustExist=False)
+        if cm.exists and (cm.prefix() != prefix):
+            if not env['EXTPKG_IN_MULTIPLE_LOC_OK']:
+                fail(("standardExternalPackage - creating external package "
+                      "for=%s that exists in conda, but using location other than "
+                      "that in the conda environment. Best to use standardCondaPackage to "
+                      "wrap an existing conda package (instead of this function) or set the "
+                      "environment variable SIT_EXTPKG_IN_MULTIPLE_LOC_OK=1 to try "
+                      "to mask the conda version of the package. The two prefixes=\n'%s'\n'%s'") % 
+                     (package, prefix, cm.prefix()))
+            else:
+                warning("external package %s exists in conda env" % package)
 
     # link include directory
     inc_dir = _get_dir(package, 'INCDIR', kw, env, prefix)
@@ -147,6 +159,11 @@ def standardExternalPackage(package, **kw) :
         if not os.path.isdir(archinc) : os.makedirs(archinc)
 
         includes = kw.get('INCLUDES')
+
+        if package in ['hdf5']:
+            import IPython
+            IPython.embed()
+
         if not includes :
 
             # link the whole include directory
@@ -293,7 +310,7 @@ def standardExternalPackage(package, **kw) :
             docgen = docgen.split()
         if isinstance(docgen, types.ListType):
             # make dict out of list, value is package name
-            docgen = dict([(k, pkg) for k in docgen])
+            docgen = dict([(k, pkgBasename) for k in docgen])
         for gen, dir in docgen.items():
             if dir:
                 env = DefaultEnvironment()

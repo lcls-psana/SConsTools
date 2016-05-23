@@ -14,7 +14,18 @@ from trace import *
 
 from SCons.Defaults import *
 from SCons.Script import *
+from SConsTools.trace import *
 from SConsTools.scons_functions import warning, fail
+
+def condaPackageExists(pkg):
+    env = DefaultEnvironment()
+    cm = CondaMeta(pkg, mustExist=False)
+    return cm.exists
+
+def _expected_dir_for_includes(dirname):
+    if dirname in ['include','lib']:
+        return True
+    return False
 
 class CondaMeta(object):
     def __init__(self, pkg, mustExist=True):
@@ -63,9 +74,20 @@ class CondaMeta(object):
         matches.sort()
         self.pkgMeta = matches[-1][1]
 
-    def includes(self):
+    def includes(self, extensions=['.h']):
         assert self.exists
-        return self._getFilesInSubDir('include')
+        files = []
+        for fname in self.pkgMeta['files']:
+            rootdir = fname.split(os.path.sep)[0]
+            if _expected_dir_for_includes(rootdir):
+                ext = os.path.splitext(fname)[1]
+                if ext in extensions:
+                        files.append(fname)
+            else:
+                trace(("includes - skipping %s, doesn't look "
+                       "like it should be an include") % fname, 'CondaMeta', 3)
+
+        return files
 
     def prefix(self):
         return self.env['CONDA_ENV_PATH']

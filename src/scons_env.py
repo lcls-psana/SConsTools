@@ -45,7 +45,7 @@ def buildEnv () :
 
     # SIT_EXTERNAL_SW
     sit_external_sw = pjoin(sit_root, "sw/external")
-        
+
     vars = Variables()
     vars.AddVariables(
         ('CPPFLAGS', "User-specified C preprocessor options", ""),
@@ -70,6 +70,7 @@ def buildEnv () :
     if env['CONDA']:
         env['CONDA_ENV_PATH'] = os.environ['CONDA_ENV_PATH']
         env['SKIP_BUILD_EXT'] = os.environ.get('SIT_SKIP_BUILD_EXT',False)
+        env['EXTPKG_IN_MULTIPLE_LOC_OK'] = os.environ.get('SIT_EXTPKG_IN_MULTIPLE_LOC_OK', False)
 
     # set trace level based on the command line value
     setTraceLevel(int(env['TRACE']))
@@ -98,7 +99,7 @@ def buildEnv () :
     archdir = pjoin("#arch/", sit_arch)
     archincdir = "${ARCHDIR}/geninc"
     bindir = "${ARCHDIR}/bin"
-    libdir = "${ARCHDIR}/lib"    
+    libdir = "${ARCHDIR}/lib"
     pydir = "${ARCHDIR}/python"
     phpdir = "${ARCHDIR}/php"
     extpkginstdir = "${ARCHDIR}/extpkgs"
