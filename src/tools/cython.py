@@ -47,7 +47,6 @@ def cython_suffix_emitter(env, source):
 
 def generate(env):
     
-    # cython comes from pyextra package
     if env['CONDA']:
         cythonbin = pjoin(env['CONDA_ENV_PATH'], 'bin','cython')
         assert os.path.exists(cythonbin), \

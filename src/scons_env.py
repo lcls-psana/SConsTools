@@ -44,10 +44,7 @@ def buildEnv () :
     destdir = pjoin(sit_root, "sw/releases", sit_release)
 
     # SIT_EXTERNAL_SW
-    if os.environ.get('SIT_USE_CONDA',''):        
-        sit_external_sw = os.environ['CONDA_ENV_PATH']
-    else:
-        sit_external_sw = pjoin(sit_root, "sw/external")
+    sit_external_sw = pjoin(sit_root, "sw/external")
         
     vars = Variables()
     vars.AddVariables(
@@ -112,7 +109,7 @@ def buildEnv () :
     libpath = [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
     if env['CONDA']:
         libpath.append(pjoin(env['CONDA_ENV_PATH'],'lib'))
-
+        cpppath.append(pjoin(env['CONDA_ENV_PATH'],'include'))
     # set other variables in environment
     env.Replace(ARCHDIR=archdir,
                 ARCHINCDIR=archincdir,
