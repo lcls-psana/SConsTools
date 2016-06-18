@@ -160,10 +160,6 @@ def standardExternalPackage(package, **kw) :
 
         includes = kw.get('INCLUDES')
 
-        if package in ['hdf5']:
-            import IPython
-            IPython.embed()
-
         if not includes :
 
             # link the whole include directory

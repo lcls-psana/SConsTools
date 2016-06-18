@@ -178,6 +178,7 @@ def setPkgDeps ( pkg, deps ):
         if isinstance(deps,(str,unicode)) : deps = deps.split()
         # do not include self-dependencies
         pkg_info['DEPS'] = [ d for d in deps if d != pkg ]
+        trace("setPkgDeps: pkg=%s deps=%s" % (pkg, ','.join(pkg_info['DEPS'])), "dependencies", 3)
 
 #
 # Store package dependency data in a file

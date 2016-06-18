@@ -22,11 +22,6 @@ def condaPackageExists(pkg):
     cm = CondaMeta(pkg, mustExist=False)
     return cm.exists
 
-def _expected_dir_for_includes(dirname):
-    if dirname in ['include','lib']:
-        return True
-    return False
-
 class CondaMeta(object):
     def __init__(self, pkg, mustExist=True):
         '''gather meta information about a package in conda.
@@ -58,7 +53,8 @@ class CondaMeta(object):
 
         if len(matches)==0:
             if mustExist:
-                fail("No json file found for pkg=%s in cond env=%s" % (pkg, self.env['CONDA_ENV_PATH']))
+                fail("No json file found for pkg=%s in cond env=%s" % 
+                     (pkg, self.env['CONDA_ENV_PATH']))
                 return
             else:
                 self.exists = False
@@ -74,23 +70,53 @@ class CondaMeta(object):
         matches.sort()
         self.pkgMeta = matches[-1][1]
 
-    def includes(self, extensions=['.h']):
+    def includes(self, extensions=['.h'], subdirs=['include', 'lib']):
         assert self.exists
         files = []
         for fname in self.pkgMeta['files']:
             rootdir = fname.split(os.path.sep)[0]
-            if _expected_dir_for_includes(rootdir):
+            if rootdir in subdirs:
                 ext = os.path.splitext(fname)[1]
                 if ext in extensions:
                         files.append(fname)
-            else:
-                trace(("includes - skipping %s, doesn't look "
-                       "like it should be an include") % fname, 'CondaMeta', 3)
-
         return files
 
     def prefix(self):
         return self.env['CONDA_ENV_PATH']
+
+    def python_dir(self):
+        '''Returns pydir relative to prefix
+        '''
+        pydir = os.path.split(os.__file__)[0]
+        assert pydir.startswith(self.prefix()), ("unable to determine pydir. "
+          "Used os.__file__, but it does not start with the prefix. Got pydir=%s "
+          " but prefix=%s") % (os.__file__, pydir)
+        return pydir[len(self.prefix())+1:]
+
+    def python_site_packages(self):
+        pydir = self.python_dir()
+        site_packages_dir = os.path.join(pydir, 'site-packages')
+        assert os.path.exists(os.path.join(self.prefix(), site_packages_dir)), "no site packages found"
+        return site_packages_dir
+
+    def package_dependencies(self):
+        if 'depends' not in self.pkgMeta:
+            trace("condaMeta pkg=%s 'depends' not in condaMeta." % self.pkg, 'SConscript', 2)
+            return []
+
+        dependencies = []
+        relationalOpList = ['<','>','<=','>=','==','!=']
+        for pkgMatchSpec in self.pkgMeta['depends']:
+            curLen = len(dependencies)
+            for rop in relationalOpList:
+                if len(pkgMatchSpec.split(rop))==2:
+                    dependencies.append(pkgMatchSpec.split(rop)[0].strip())
+                    trace("condaMeta pkg=%s found dependency: %s" % (self.pkg, dependencies[-1]), 'SConscript',2)
+                    break
+            if len(dependencies) == curLen:
+                warning("unable to parse pkg dependency string: %s" % pkgMatchSpec)
+
+        return dependencies
 
     def dynlibs(self):
         assert self.exists
