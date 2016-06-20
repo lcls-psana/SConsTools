@@ -177,7 +177,8 @@ def buildEnv () :
     env['ALL_TARGETS']['BINS'] = []
     env['ALL_TARGETS']['TESTS'] = []
     env['ALL_TARGETS']['PYLINT'] = []
-
+   
+    
     # generate help
     Help(vars.GenerateHelpText(env))
 
