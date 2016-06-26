@@ -168,8 +168,10 @@ def buildEnv () :
     env.SConsignFile(pjoin("build", sit_arch, ".sconsign"))
 
     if env['CONDA']:
-        env.Replace( RPATH = pjoin(env['CONDA_ENV_PATH'], 'lib'))
-#env.Literal("'$$ORIGIN/../lib'") )
+        conda_lib = pjoin(env['CONDA_ENV_PATH'], 'lib')
+        rpath_string = env.Literal("'$$ORIGIN/../lib:%s'" % conda_lib)
+        env.Replace( RPATH = rpath_string )
+#
 
     # these lists will be filled by standard rules
     env['ALL_TARGETS']['INCLUDES'] = []
