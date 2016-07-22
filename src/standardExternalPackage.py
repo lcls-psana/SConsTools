@@ -274,22 +274,25 @@ def standardExternalPackage(package, **kw) :
     # get package information, if kw PKGINFO is present then use it (wrap
     # into tuple if it is a string)
     pkginfo = None
-    if 'PKGINFO' in kw:
-        pkginfo = kw.get('PKGINFO')
-        if isinstance(pkginfo, types.StringTypes):
-            # if contains literal $SIT_ARCH.found replace it with real arch
-            pkginfo = pkginfo.replace('$SIT_ARCH.found', arch)
-            pkginfo = tuple(pkginfo,)
-        elif pkginfo is not None:
-            # if contains literal $SIT_ARCH.found replace it with real arch
-            pkginfo = tuple([info.replace('$SIT_ARCH.found', arch) for info in pkginfo])
-    elif prefix:
-        # if PREFIX starts with SIT_EXTERNAL_SW then strip it and split remaining path
-        # then add the result to the list in the environment
-        sprefix = prefix.split(os.path.sep)
-        sextsw = env['SIT_EXTERNAL_SW'].split(os.path.sep)
-        if sprefix[:len(sextsw)] == sextsw:
-            pkginfo = tuple(sprefix[len(sextsw):])
+    if env['CONDA']:
+        trace("skipping PKGINFO for standard External package since this is a conda build", "standardExternalPackage", 5)
+    else:
+        if 'PKGINFO' in kw:
+            pkginfo = kw.get('PKGINFO')
+            if isinstance(pkginfo, types.StringTypes):
+                # if contains literal $SIT_ARCH.found replace it with real arch
+                pkginfo = pkginfo.replace('$SIT_ARCH.found', arch)
+                pkginfo = tuple(pkginfo,)
+            elif pkginfo is not None:
+                # if contains literal $SIT_ARCH.found replace it with real arch
+                pkginfo = tuple([info.replace('$SIT_ARCH.found', arch) for info in pkginfo])
+            elif prefix:
+                # if PREFIX starts with SIT_EXTERNAL_SW then strip it and split remaining path
+                # then add the result to the list in the environment
+                sprefix = prefix.split(os.path.sep)
+                sextsw = env['SIT_EXTERNAL_SW'].split(os.path.sep)
+                if sprefix[:len(sextsw)] == sextsw:
+                    pkginfo = tuple(sprefix[len(sextsw):])
     if pkginfo:
         env['EXT_PACKAGE_INFO'].setdefault(package, []).append(pkginfo)
         trace("pkginfo: %s" % (pkginfo,), "standardExternalPackage", 4)

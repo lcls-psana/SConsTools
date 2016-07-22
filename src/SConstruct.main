@@ -12,18 +12,13 @@ import sys
 from pprint import *
 from os.path import join as pjoin
 
-## Testing - remove
-for k,v in os.environ.iteritems():
-    if k.startswith('SIT') or k.find('PATH')>=0 or k.find('PYTHON')>=0 or k.find('CONDA')>=0:
-        print '%s=%s' % (k,v)
-
 ########## start SConstruct script ###############
 cwd = os.getcwd()
 
 #   check that all required envvars are defined
-for var in ["SIT_ARCH", "SIT_ROOT", "SIT_RELEASE"]:
-    if not os.environ.get(var, None):
-        print >> sys.stderr, "Environment variable %s is not defined" % var
+for envVar in ['SIT_ARCH', 'SIT_RELEASE']:
+    if os.environ.get(envVar, None) is None:
+        print >> sys.stderr,  "Environment variable %s is not defined" % envVar
         Exit(2)
 
 if 'SIT_USE_CONDA' in os.environ:
@@ -33,6 +28,11 @@ if 'SIT_USE_CONDA' in os.environ:
     if not os.environ.get('PATH','').startswith(os.path.join(os.environ['CONDA_ENV_PATH'], 'bin')):
         print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH/bin does not start PATH"
         Exit(2)
+else:
+    for envVar in ['SIT_ROOT']:
+        if os.environ.get(envVar, None) is None:
+            print >> sys.stderr,  "Environment variable %s is not defined" % envVar
+            Exit(2)
         
 
 sit_arch = os.environ["SIT_ARCH"]
@@ -134,7 +134,10 @@ if env.GetOption('help'):
     env.Help('    test-pkg  - run unit tests in package pkg\n')
     env.Help('    pylint    - run pylint on all Python modules\n')
     env.Help('\nList of less frequently used targets:\n')
-    env.Help('    install                      - install release (use DESTDIR variable)\n')
+    if env['CONDA']:
+        env.Help('    conda-install                - install step of conda build\n')
+    else:
+        env.Help('    install                      - install release, old style (use DESTDIR variable)\n')
     env.Help('    SConsTools.pkg_list          - produce package list file (use PKG_LIST_FILE)\n')
     env.Help('    package-dependencies         - print dependencies for all packages\n')
     env.Help('    package-dependencies-reverse - print reverse dependencies for all packages\n')
@@ -220,11 +223,18 @@ env.Default(all)
 #
 # Special install target
 #
-destdir = env['DESTDIR']
-install = env.ReleaseInstall([Dir(destdir)], [])
-env.AlwaysBuild(install)
-env.Alias('install', [install])
-env.Requires(install, all)
+if env['CONDA']:
+    destdir = env['CONDA_ENV_PATH']
+    conda_install = env.CondaInstall([Dir(destdir)], [])
+    env.AlwaysBuild(conda_install)
+    env.Alias('conda-install', [conda_install])
+    env.Requires(conda_install, all)
+else:
+    destdir = env['DESTDIR']
+    install = env.ReleaseInstall([Dir(destdir)], [])
+    env.AlwaysBuild(install)
+    env.Alias('install', [install])
+    env.Requires(install, all)
 
 #
 # Special target for package list file

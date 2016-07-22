@@ -34,17 +34,8 @@ def buildEnv () :
     # use half of all CPUs
     SetOption('num_jobs', _getNumCpus()/2 or 1)
 
-    # SIT_ROOT
-    sit_root = os.environ["SIT_ROOT"]
-    
     # SIT_RELEASE
     sit_release = os.environ['SIT_RELEASE']
-
-    # default DESTDIR
-    destdir = pjoin(sit_root, "sw/releases", sit_release)
-
-    # SIT_EXTERNAL_SW
-    sit_external_sw = pjoin(sit_root, "sw/external")
 
     vars = Variables()
     vars.AddVariables(
@@ -56,17 +47,33 @@ def buildEnv () :
         ('SIT_ARCH', "Use to change the SIT_ARCH value during build", os.environ['SIT_ARCH']),
         ('SIT_RELEASE', "Use to change the SIT_RELEASE value during build", sit_release),
         ('SIT_REPOS', "Use to change the SIT_REPOS value during build", os.environ.get('SIT_REPOS', "")),
-        PathVariable('SIT_EXTERNAL_SW', "Use to change the SIT_EXTERNAL_SW value during build", sit_external_sw, PathVariable.PathIsDir),
         PathVariable('PKG_DEPS_FILE', "Name of the package dependency file", '.pkg_tree.pkl', PathVariable.PathAccept),
         PathVariable('PKG_LIST_FILE', "Name of the package list file", '/dev/stdout', PathVariable.PathAccept),
-        PathVariable('DESTDIR', "destination directory for install target", destdir, PathVariable.PathAccept),
         ('TRACE', "Set to positive value to trace processing", 0)
     )
+
+    not_conda = os.environ.get('SIT_USE_CONDA', None) is None
+    if not_conda:
+        # SIT_ROOT
+        sit_root = os.environ["SIT_ROOT"]
+
+        # default DESTDIR
+        destdir = pjoin(sit_root, "sw/releases", sit_release)
+
+        # SIT_EXTERNAL_SW
+        sit_external_sw = pjoin(sit_root, "sw/external")
+
+        vars.AddVariables(
+            PathVariable('SIT_EXTERNAL_SW', "Use to change the SIT_EXTERNAL_SW value during build", sit_external_sw, PathVariable.PathIsDir),
+            PathVariable('DESTDIR', "destination directory for install target", destdir, PathVariable.PathAccept),
+        )
+
 
     # make environment, also make it default
     env = DefaultEnvironment(ENV=os.environ, variables=vars)
     vars.GenerateHelpText(env)
-    env['CONDA']=bool(os.environ.get('SIT_USE_CONDA',''))
+    env['CONDA']=not not_conda
+
     if env['CONDA']:
         env['CONDA_ENV_PATH'] = os.environ['CONDA_ENV_PATH']
         env['SKIP_BUILD_EXT'] = os.environ.get('SIT_SKIP_BUILD_EXT',False)
@@ -122,7 +129,6 @@ def buildEnv () :
                 CPPPATH=cpppath,
                 LIBPATH=libpath,
                 LIB_ABI=lib_abi,
-                SIT_ROOT=sit_root,
                 SIT_ARCH_PROC=sit_arch_parts[0],
                 SIT_ARCH_OS=sit_arch_parts[1],
                 SIT_ARCH_COMPILER=sit_arch_parts[2],
@@ -143,6 +149,9 @@ def buildEnv () :
                 SCRIPT_SUBS = {},
                 DOC_TARGETS = {}
                 )
+    if not env['CONDA']:
+        env.Replace(SIT_ROOT=sit_root)
+
 
     # location of the tools
     toolpath = [ pjoin(r, "arch", sit_arch, "python/SConsTools/tools") for r in all_sit_repos ]
@@ -151,7 +160,12 @@ def buildEnv () :
     # extend environment with tools
     tools = ['psdm_cplusplus', 'psdm_python', 'pyext', 'cython', 'symlink', 
              'pycompile', 'pylint', 'unittest', 'script_install', 'pkg_list', 
-             'release_install', 'special_scanners']
+             'special_scanners']
+    if env['CONDA']:
+        tools.append('conda_install')
+    else:
+        tools.append('release_install')
+    print tools
     trace ("toolpath = " + pformat(toolpath), "buildEnv", 3)
     for tool in tools:
         tool = env.Tool(tool, toolpath=toolpath)
