@@ -62,8 +62,6 @@ class _makeCondaInstall:
         if not os.path.exists(os.path.join(condaBin, 'python')): fail("condaInstall - there is no python executable in the 'bin' subdir to the condaPrefix=%s, it does not look like we are installing into a conda environment" % condaPrefix)
 
         sit_arch = env['SIT_ARCH']
-        import IPython
-        IPython.embed()
         sp_dir = env.get('SP_DIR', None)  # defined by conda build
         if sp_dir is None:
             sp_dir = os.environ.get('SP_DIR', None)
