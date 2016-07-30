@@ -80,7 +80,7 @@ class _makeCondaInstall:
                 fail("Release path %s does not exit" % releaseDir)
             mkdirOrFail(condaDir)
             print "conda install: copying dir %s to %s" % (releaseDir, condaDir)
-            copytree(releaseDir, destDir)
+            copytree(releaseDir, condaDir)
 
     def strfunction(self, target, source, env):
         try :
