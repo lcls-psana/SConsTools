@@ -11,6 +11,8 @@ import os
 from os.path import join as pjoin
 import shutil
 
+#try:
+
 import SCons
 from SCons.Builder import Builder
 from SCons.Action import Action
@@ -18,34 +20,67 @@ from SCons.Action import Action
 from SConsTools.trace import *
 from SConsTools.scons_functions import *
 
+#except ImportError:
+#    print "testing mode"
+#    def warning(msg):
+#        print "WARNING: %s" % msg
+#    def trace(msg, prefix, lvl):
+#        print "%s: %s" % (prefix, msg)
+#    def fail(msg):
+#        raise Exception(msg)
+#    def mkdirOrFail ( d ) :
+#        try :
+#            if not os.path.isdir( d ) :
+#                os.makedirs ( d )
+#                trace ( "Creating directory (1) `%s'" % d, "mkdirOrFail", 1 )
+#        except :
+#            fail ( "Failed to create `%s' directory" % ( d, ) )
+
 
 def _fmtList(lst):
     return '[' + ','.join(map(str, lst)) + ']'
 
-def copytree(src, dest):
-    def ignore(src, names):
+def copytree(src, dest, link_prefix):
+    '''src files that exist in the destination are ignored.
+    For links, the target is copied as long as it has the link_prefix,
+    this is to prevent trying to copy links into conda itself
+
+    returns number of files copied
+    '''
+    def ignore(names):
         # I think these files were only there because I was doing development with
         # emacs, probably don't need ignore function
         return [nm for nm in names if nm.startswith('#') or nm.startswith('.#')]
 
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dest, item)
-        if os.path.islink(s):
-            s_real = os.path.realpath(s)
-            print "  src -> %s" % s_real
-            if (s_real == os.path.realpath(d)):
-                print "  skipping src=%s, it is a soft link to conda file=%s" % (src, s_real)
+    names = os.listdir(src)
+    ignore_names = ignore(names)
+    num_files_copied = 0
+
+    for name in names:
+        if name in ignore_names: continue
+        srcname = os.path.join(src, name)
+        destname = os.path.join(dest, name)
+        trace("src->dest %s -> %s" % (srcname, destname), "condaInstall", 0)
+        if os.path.islink(srcname):
+            src_real = os.path.realpath(srcname)
+            if not src_real.startswith(link_prefix):
+                trace("Skipping symlink %s, realpath=%s, does not start with %s" % (srcname, src_real, link_prefix), "condaInstall", 0)
                 continue
-        if os.path.isdir(s):
-#            if os.path.exists(d): 
-#                print "d exists, skipping"
-#                continue
-            print "  about to do copytree on src directory=%s" % s
-            shutil.copytree(s, d, False, ignore)
+            trace("copying src=%s, it is a symlink to a file within the release" % srcname, "condaInstall", 0)
+            srcname = src_real
+        if os.path.isdir(srcname):
+            mkdirOrFail(destname)
+            num_files_copied += copytree(srcname, destname, link_prefix)
         else:
-            print "  copying file src=%s to dest=%s" % (s,d)
-            shutil.copy2(s,d)
+            if os.path.exists(destname):
+                warning("condaInstall: dest file exists, skipping, %s" % destname)
+            else:
+                trace("copy2(%s,%s)" % (srcname, destname), "condaInstall", 0)
+                shutil.copy2(srcname, destname)
+                num_files_copied += 1
+    trace("copystat(%s,%s)" % (src, dest), "condaInstall", 0)
+    shutil.copystat(src, dest)
+    return num_files_copied
 
 class _makeCondaInstall:
 
@@ -80,7 +115,7 @@ class _makeCondaInstall:
                 fail("Release path %s does not exit" % releaseDir)
             mkdirOrFail(condaDir)
             print "conda install: copying dir %s to %s" % (releaseDir, condaDir)
-            copytree(releaseDir, condaDir)
+            copytree(releaseDir, condaDir, link_prefix=os.path.realpath('.'))
 
     def strfunction(self, target, source, env):
         try :
@@ -107,3 +142,9 @@ def generate(env):
 
 def exists(env):
     return True
+
+#if __name__ == '__main__':
+#    print "testing conda_install"
+#    condaInstall = _makeCondaInstall()
+#    os.environ['SP_DIR'] = os.path.join(os.environ['CONDA_PREFIX'], 'lib', 'python2.7', 'site-packages')
+#    condaInstall([os.environ['CONDA_PREFIX']], [], os.environ)
