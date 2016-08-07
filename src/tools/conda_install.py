@@ -10,6 +10,7 @@ AUTHORS:
 import os
 from os.path import join as pjoin
 import shutil
+import py_compile
 
 #try:
 
@@ -40,6 +41,48 @@ from SConsTools.scons_functions import *
 def _fmtList(lst):
     return '[' + ','.join(map(str, lst)) + ']'
 
+def generateAnaRelInfoFromPackageList(pyOutDir):
+    if not os.path.exists('.sit_release'):
+        warning('no .sit_release found, aborting anarel version info')
+        return
+    relverstr = file('.sit_release').read().strip()
+    pkginfo = {}
+    if not os.path.exists('psana-conda-tags'):
+        warning('psana-conda-tags file not find, not adding anarel version info')
+        return
+
+    for ln in file('psana-conda-tags','r').read().split('\n'):
+        ln = ln.strip()
+        if len(ln)==0: continue
+        flds = ln.split()
+        if len(flds) not in [4,5]:
+            warning('psana-conda-tags file format has changed, this line does not have 4 or 5 fields: %s' % ln)
+            warning('  aborting anarel version info')
+            return
+        if len(flds)==5:
+            jnk, tag = flds[4].split('tag=')
+            pkginfo[flds[0]]=tag
+        else:
+            if flds[1] != 'conda_branch=True':
+                warning('psana-conda-tags file format is not understood, this ln has 4 fields but doesnt specify conda_branch=True for field 1: %s' % ln )
+            pkginfo[flds[0]]='conda_branch'
+    assert os.path.exists(pyOutDir)
+    outDir = os.path.join(pyOutDir, 'anarelinfo')
+    if not os.path.exists(outDir):
+        os.mkdir(outDir)
+        trace("anarelinfo - made dir %s" % outDir, "condaInstall", 1)
+    anarelinit = os.path.join(outDir, '__init__.py')
+    fout = file(anarelinit,'w')
+    fout.write("version='%s'\n" % relverstr)
+    fout.write("pkgtags={  \n")
+    for pkg, tagstr in pkginfo.iteritems():
+        fout.write("'%s':'%s',\n" % (pkg, tagstr))
+    fout.write("}\n")
+    fout.close()
+    py_compile.compile(anarelinit)
+        
+                
+                    
 def copytree(src, dest, link_prefix):
     '''src files that exist in the destination are ignored.
     For links, the target is copied as long as it has the link_prefix,
@@ -60,7 +103,7 @@ def copytree(src, dest, link_prefix):
         if name in ignore_names: continue
         srcname = os.path.join(src, name)
         destname = os.path.join(dest, name)
-        trace("src->dest %s -> %s" % (srcname, destname), "condaInstall", 0)
+        trace("src->dest %s -> %s" % (srcname, destname), "condaInstall", 3)
         if os.path.islink(srcname):
             src_real = os.path.realpath(srcname)
             if not src_real.startswith(link_prefix):
@@ -75,7 +118,7 @@ def copytree(src, dest, link_prefix):
             if os.path.exists(destname):
                 warning("condaInstall: dest file exists, skipping, %s" % destname)
             else:
-                trace("copy2(%s,%s)" % (srcname, destname), "condaInstall", 0)
+                trace("copy2(%s,%s)" % (srcname, destname), "condaInstall", 3)
                 shutil.copy2(srcname, destname)
                 num_files_copied += 1
     trace("copystat(%s,%s)" % (src, dest), "condaInstall", 0)
@@ -102,6 +145,8 @@ class _makeCondaInstall:
             sp_dir = os.environ.get('SP_DIR', None)
         if sp_dir is None: fail('SP_DIR is defined in neither the scons env or os.environ')
 
+        generateAnaRelInfoFromPackageList(os.path.join('arch', sit_arch, 'python'))
+
         release2conda = {'include':pjoin(condaPrefix,'include'),
                          'data':pjoin(condaPrefix,'data'),
                          os.path.join('arch', sit_arch, 'lib'):pjoin(condaPrefix,'lib'),
@@ -116,6 +161,7 @@ class _makeCondaInstall:
             mkdirOrFail(condaDir)
             print "conda install: copying dir %s to %s" % (releaseDir, condaDir)
             copytree(releaseDir, condaDir, link_prefix=os.path.realpath('.'))
+
 
     def strfunction(self, target, source, env):
         try :
