@@ -19,6 +19,9 @@ from SCons.Script import *
 #     Local functions
 # ==========================
 
+def info(msg):
+    print >> sys.stdout, msg
+
 def warning(msg):
     print >> sys.stderr, "WARNING:", msg
 

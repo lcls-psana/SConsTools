@@ -25,6 +25,9 @@ from SConsTools.scons_functions import *
 #    print "testing mode"
 #    def warning(msg):
 #        print "WARNING: %s" % msg
+#    def info(msg):
+#        print msg
+
 #    def trace(msg, prefix, lvl):
 #        print "%s: %s" % (prefix, msg)
 #    def fail(msg):
@@ -84,8 +87,7 @@ def generateAnaRelInfoFromPackageList(pyOutDir):
                 
                     
 def copytree(src, dest, link_prefix):
-    '''src files that exist in the destination are ignored.
-    For links, the target is copied as long as it has the link_prefix,
+    '''For links, the target is copied as long as it has the link_prefix,
     this is to prevent trying to copy links into conda itself
 
     returns number of files copied
@@ -100,28 +102,24 @@ def copytree(src, dest, link_prefix):
     num_files_copied = 0
 
     for name in names:
-        if name in ignore_names: continue
+        if name in ignore_names: 
+            continue
         srcname = os.path.join(src, name)
         destname = os.path.join(dest, name)
-        trace("src->dest %s -> %s" % (srcname, destname), "condaInstall", 3)
         if os.path.islink(srcname):
             src_real = os.path.realpath(srcname)
             if not src_real.startswith(link_prefix):
-                trace("Skipping symlink %s, realpath=%s, does not start with %s" % (srcname, src_real, link_prefix), "condaInstall", 0)
+                info("conda_install: skipping src=%s, realpath from symlink, it does not start with %s" % (src_real, link_prefix))
                 continue
-            trace("copying src=%s, it is a symlink to a file within the release" % srcname, "condaInstall", 0)
             srcname = src_real
         if os.path.isdir(srcname):
             mkdirOrFail(destname)
             num_files_copied += copytree(srcname, destname, link_prefix)
         else:
-            if os.path.exists(destname):
-                warning("condaInstall: dest file exists, skipping, %s" % destname)
-            else:
-                trace("copy2(%s,%s)" % (srcname, destname), "condaInstall", 3)
-                shutil.copy2(srcname, destname)
-                num_files_copied += 1
-    trace("copystat(%s,%s)" % (src, dest), "condaInstall", 0)
+            shutil.copy2(srcname, destname)
+            info("conda_install: copied %s -> %s" % (srcname, destname))
+            num_files_copied += 1
+    info("conda_install: copystat(%s,%s)" % (src, dest))
     shutil.copystat(src, dest)
     return num_files_copied
 
@@ -149,6 +147,7 @@ class _makeCondaInstall:
 
         release2conda = {'include':pjoin(condaPrefix,'include'),
                          'data':pjoin(condaPrefix,'data'),
+                         'web':pjoin(condaPrefix, 'web'),
                          os.path.join('arch', sit_arch, 'lib'):pjoin(condaPrefix,'lib'),
                          os.path.join('arch', sit_arch, 'bin'):pjoin(condaPrefix,'bin'),
                          os.path.join('arch', sit_arch, 'geninc'):pjoin(condaPrefix,'include'),
@@ -157,9 +156,10 @@ class _makeCondaInstall:
         
         for releaseDir, condaDir in release2conda.iteritems():
             if not os.path.exists(releaseDir):
-                fail("Release path %s does not exit" % releaseDir)
+                warning("Release path %s does not exist, will not install from it" % releaseDir)
+                continue
             mkdirOrFail(condaDir)
-            print "conda install: copying dir %s to %s" % (releaseDir, condaDir)
+            info("conda install: copying dir %s to %s" % (releaseDir, condaDir))
             copytree(releaseDir, condaDir, link_prefix=os.path.realpath('.'))
 
 
