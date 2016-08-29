@@ -145,6 +145,11 @@ class _makeCondaInstall:
 
         generateAnaRelInfoFromPackageList(os.path.join('arch', sit_arch, 'python'))
 
+        # get SConstruct.main installed
+        sconstruct_main = os.path.join('SConsTools','src','SConstruct.main')
+        assert os.path.exists(sconstruct_main), "file doesn't exist: %s" % sconstruct_main
+        shutil.copy2(sconstruct_main, os.path.join('arch', sit_arch, 'python', 'SConsTools', 'SConstruct.main'))
+        
         release2conda = {'include':pjoin(condaPrefix,'include'),
                          'data':pjoin(condaPrefix,'data'),
                          'web':pjoin(condaPrefix, 'web'),
