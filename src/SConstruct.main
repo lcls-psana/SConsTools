@@ -25,8 +25,9 @@ if 'SIT_USE_CONDA' in os.environ:
     if not 'CONDA_ENV_PATH' in os.environ:
         print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH is not"
         Exit(2)
-    if not os.environ.get('PATH','').startswith(os.path.join(os.environ['CONDA_ENV_PATH'], 'bin')):
-        print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH/bin does not start PATH"
+    path_dirs = os.environ.get('PATH','').split(os.path.pathsep)
+    if len(path_dirs)==0 or os.path.join(os.environ['CONDA_ENV_PATH'], 'bin') not in path_dirs[0:2]:
+        print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH/bin is not at the first or second plath in the PATH"
         Exit(2)
 else:
     for envVar in ['SIT_ROOT']:
