@@ -11,6 +11,11 @@ Package author: Andrei Salnikov
 Please describe any modifications that you made to the package in the
 reverse time order.
 
+Tag: V00-11-07
+2016-09-17 David Schneider
+- disable loading of openib when running pydocdriver to suppress errors on
+  rhel5 build machine
+
 Tag: V00-11-06
 2016-03-28 Mikhail Dubrovin
 - in SConstruct.main add -S option to pydoc-driver commands which did not have it.
