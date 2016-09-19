@@ -99,7 +99,10 @@ class _makeCondaInstall:
         sp_dir = env.get('SP_DIR', None)  # defined by conda build
         if sp_dir is None:
             sp_dir = os.environ.get('SP_DIR', None)
-        if sp_dir is None: fail('SP_DIR is defined in neither the scons env or os.environ')
+        if sp_dir is None: 
+            warning('SP_DIR is not defined, assuming this is testing outside conda-build, setting sp_dir for python 2.7') 
+            sp_dir = os.path.join(os.environ['CONDA_PREFIX'], 'lib', 'python2.7', 'site-packages')
+            assert os.path.exists(sp_dir), 'SP_DIR not defined, and testing sp_dir=%s doesnt exist' % sp_dir
 
         # get SConstruct.main installed
         sconstruct_main = os.path.join('SConsTools','src','SConstruct.main')
