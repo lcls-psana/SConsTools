@@ -31,12 +31,7 @@ def generate(env):
     env['PYTHON_LIBDIR'] = pjoin(prefix, libdir)
     env['PYTHON_BINDIR'] = pjoin(prefix, "bin")
     env['PYTHON_BIN'] = pjoin(env['PYTHON_BINDIR'], env['PYTHON'])
-    
-    try:
-        # this will fail if run outside scons, we don't care
-        env['SCRIPT_SUBS']['PYTHON'] = env['PYTHON_BIN']
-    except:
-        pass
+    env['SCRIPT_SUBS']['PYTHON'] = "/usr/bin/env python"
     
     #trace ( "Initialized psdm_python tool", "psdm_python", 2 )
 

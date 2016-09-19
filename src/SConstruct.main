@@ -272,15 +272,15 @@ if 'psana-modules-doxy' in env['DOC_TARGETS']:
     docTargets.append(env.Command('doc/psana-modules-doxy/html/index.html', [], commands))
 if 'psana-ref' in env['DOC_TARGETS']:
     modules = env['DOC_TARGETS']['psana-ref']
-    commands = ["rm -rf doc/psana-ref/", "pydoc-driver -p psana -Q -s -S doc/psana-ref/html "+ ' '.join(modules)]
+    commands = ["rm -rf doc/psana-ref/", "OMPI_MCA_btl=^openib pydoc-driver -p psana -Q -s -S doc/psana-ref/html "+ ' '.join(modules)]
     docTargets.append(env.Command('doc/psana-ref/html/index.html', [], commands))
 if 'pyana-ref' in env['DOC_TARGETS']:
     modules = env['DOC_TARGETS']['pyana-ref']
-    commands = ["rm -rf doc/pyana-ref/", "pydoc-driver -p pyana -Q -s -S doc/pyana-ref/html "+ ' '.join(modules)]
+    commands = ["rm -rf doc/pyana-ref/", "OMPI_MCA_btl=^openib pydoc-driver -p pyana -Q -s -S doc/pyana-ref/html "+ ' '.join(modules)]
     docTargets.append(env.Command('doc/pyana-ref/html/index.html', [], commands))
 if 'pydoc-all' in env['DOC_TARGETS']:
     modules = env['DOC_TARGETS']['pydoc-all']
-    commands = ["rm -rf doc/pydoc-all/", "pydoc-driver -p pydoc-all -Q -s -S doc/pydoc-all/html "+ ' '.join(modules)]
+    commands = ["rm -rf doc/pydoc-all/", "OMPI_MCA_btl=^openib pydoc-driver -p pydoc-all -Q -s -S doc/pydoc-all/html "+ ' '.join(modules)]
     docTargets.append(env.Command('doc/pydoc-all/html/index.html', [], commands))
 if 'psddl_psana' in env['DOC_TARGETS']:
     # this command does not actually need any input
