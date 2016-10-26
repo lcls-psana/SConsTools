@@ -3,19 +3,21 @@ import sys
 import py_compile
 import shutil
 
+PKG_TREE_FILE = '.pkg_tree.pkl'
+PSANA_CONDA_TAGS = 'psana-conda-tags'
+ANARELPKG = 'anarelinfo'
+
 def warning(msg):
-    sys.stderr.write("%s\n" % msg)
+    sys.stderr.write("WARNING: %s\n" % msg)
 
 def info(msg):
-    sys.stdout.write("%s\n" % msg)
+    sys.stdout.write("INFO: %s\n" % msg)
 
-def copyDependenciesFile(dataDir):
-    PKG_TREE_FILE = '.pkg_tree.pkl'
-    if not os.path.exists(PKG_TREE_FILE):
-        warning("%s file not found, no dependencies copied over" % PKG_TREE_FILE)
+def copyFile(src, dataDir):
+    if not os.path.exists(src):
+        warning("%s file not found. Not copying over." % src)
         return
-    src = PKG_TREE_FILE
-    dest = os.path.join(dataDir, PKG_TREE_FILE)
+    dest = os.path.join(dataDir, src)
     shutil.copy2(src, dest)
     info("copied %s -> %s" % (src, dest))
         
@@ -24,12 +26,13 @@ def copyDependenciesFile(dataDir):
 # SConsTools                             conda_branch=True                       repo=psdm                     subdir=None           
 # note - 4 or 5 fields
 def parsePackageInfo():
+    global PSANA_CONDA_TAGS
     pkginfo = {}
-    if not os.path.exists('psana-conda-tags'):
-        warning('psana-conda-tags file not find.')
+    if not os.path.exists(PSANA_CONDA_TAGS):
+        warning('file %s not found - no tags information available.' % PSANA_CONDA_TAGS)
         return None
 
-    for ln in file('psana-conda-tags','r').read().split('\n'):
+    for ln in file(PSANA_CONDA_TAGS,'r').read().split('\n'):
         ln = ln.strip()
         if len(ln)==0: continue
         flds = ln.split()
@@ -38,7 +41,7 @@ def parsePackageInfo():
             return None
         pkg = flds[0]
         if len(flds) not in [4,5]:
-            warning('psana-conda-tags file format has changed, this line does not have 4 or 5 fields: %s' % ln)
+            warning('file %s format has changed, this line does not have 4 or 5 fields: %s' % (PSANA_CONDA_TAGS, ln))
             return None
         conda_branch, repo, subdir = flds[1:4]
         if len(flds)==5:
@@ -76,6 +79,7 @@ def generateAnaRelInfoFromPackageList(pkgname='anarelinfo'):
         info("wrote %s" % fname)
 
     #########
+    global PSANA_CONDA_TAGS
     if not os.path.exists('.sit_release'):
         warning(".sit_release file doesn't exist, aborting.")
         return False
@@ -89,7 +93,10 @@ def generateAnaRelInfoFromPackageList(pkgname='anarelinfo'):
 
     pkgDir, srcDir, dataDir = mkPkgTree(pkgname)
 
+    copyFile(PSANA_CONDA_TAGS, dataDir)
+
     writeFile(os.path.join(pkgDir, 'SConscript'), "Import('*')\nstandardSConscript()\n")
+
     init_dot_py = "version='%s'\n" % relverstr
     init_dot_py += "pkgtags={  \n"
     for pkg, tagstr in pkginfo.iteritems():
@@ -98,8 +105,16 @@ def generateAnaRelInfoFromPackageList(pkgname='anarelinfo'):
     init_dot_py_fname = os.path.join(srcDir, '__init__.py') 
     writeFile(init_dot_py_fname, init_dot_py)
     py_compile.compile(init_dot_py_fname)
-    copyDependenciesFile(dataDir)
 
-if __name__ == '__main__':    
-    generateAnaRelInfoFromPackageList()
-    
+if __name__ == '__main__':
+    if len(sys.argv)>1:
+        if sys.argv[1]=='copy_depends':
+            dataDir = os.path.join(ANARELPKG,'data')
+            if not os.path.exists(dataDir):
+                warning("Cannot execute copy_depends command, dest directory: %s doesn't exist" % dataDir)
+                sys.exit(1)
+            copyFile(PKG_TREE_FILE, dataDir)
+        else:
+            warning("%s called with argument, but it is not 'copy_depends'" % sys.argv[0])
+    else:
+        generateAnaRelInfoFromPackageList(pkgname=ANARELPKG)
