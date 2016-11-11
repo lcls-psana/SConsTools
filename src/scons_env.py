@@ -155,8 +155,12 @@ def buildEnv () :
 
     # location of the tools
     toolpath = [ pjoin(r, "arch", sit_arch, "python/SConsTools/tools") for r in all_sit_repos ]
+    if env['CONDA']:
+        sconstools_dir_in_conda_env = os.path.split(__file__)[0]
+        tools_sub_dir = os.path.join(sconstools_dir_in_conda_env, 'tools')
+        toolpath.append(tools_sub_dir)
     env.Replace(TOOLPATH=toolpath)
-
+    
     # extend environment with tools
     tools = ['psdm_cplusplus', 'psdm_python', 'pyext', 'cython', 'symlink', 
              'pycompile', 'pylint', 'unittest', 'script_install', 'pkg_list', 
@@ -165,7 +169,7 @@ def buildEnv () :
         tools.append('conda_install')
     else:
         tools.append('release_install')
-    print tools
+
     trace ("toolpath = " + pformat(toolpath), "buildEnv", 3)
     for tool in tools:
         tool = env.Tool(tool, toolpath=toolpath)
