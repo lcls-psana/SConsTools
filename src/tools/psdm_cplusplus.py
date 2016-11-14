@@ -23,28 +23,28 @@ def generate(env):
         env['CXX'] = 'g++'
         env.Append(CCFLAGS = ' ' + _gcc_opt.get(opt,'') + ' -Wall -Wno-unknown-pragmas')
         env.Append(CXXFLAGS = ' -Wno-invalid-offsetof')
-        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,''))
+        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--enable-new-dtags')
 
     elif comp in ['gcc44', 'gcc45'] :
         env['CC'] = 'gcc'
         env['CXX'] = 'g++'
         env.Append(CCFLAGS = ' ' + _gcc_opt.get(opt,'') + ' -Wall')
         env.Append(CXXFLAGS = ' -Wno-invalid-offsetof')
-        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,''))
+        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--enable-new-dtags')
 
     elif comp == 'gcc46' :
         env['CC'] = 'gcc-4.6'
         env['CXX'] = 'g++-4.6'
         env.Append(CCFLAGS = ' ' + _gcc_opt.get(opt,'') + ' -Wall')
         env.Append(CXXFLAGS = ' -Wno-invalid-offsetof')
-        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,''))
+        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--enable-new-dtags')
 
     elif comp == 'gcc48' :
         env['CC'] = 'gcc'
         env['CXX'] = 'g++'
         env.Append(CCFLAGS = ' ' + _gcc_opt.get(opt,'') + ' -Wall')
         env.Append(CXXFLAGS = ' -Wno-invalid-offsetof -Wno-unused-local-typedefs')
-        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--copy-dt-needed-entries')
+        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--copy-dt-needed-entries -Wl,--enable-new-dtags')
 
     elif comp in [ 'gcc53', 'gcc52', 'gcc51']:
         env['CC'] = 'gcc'
@@ -58,7 +58,7 @@ def generate(env):
             env.Append(CXXFLAGS = ' -Wno-invalid-offsetof -Wno-unused-local-typedefs -D_GLIBCXX_USE_CXX11_ABI=0')
         else:
             env.Append(CXXFLAGS = ' -Wno-invalid-offsetof -Wno-unused-local-typedefs')
-        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--copy-dt-needed-entries')
+        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--copy-dt-needed-entries -Wl,--enable-new-dtags')
 
     
     trace ( "Initialized psdm_cplusplus tool", "psdm_cplusplus", 2 )

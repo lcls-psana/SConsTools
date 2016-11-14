@@ -189,7 +189,8 @@ def buildEnv () :
         conda_lib = pjoin(env['CONDA_ENV_PATH'], 'lib')
         rpath_string = env.Literal("'$$ORIGIN/../lib:%s'" % conda_lib)
         env.Replace( RPATH = rpath_string )
-#
+        # need to make sure --enable-new-dtags is passed to the linker so that we can override 
+        # RPATH with LD_LIBRARY_PATH at run time
 
     # these lists will be filled by standard rules
     env['ALL_TARGETS']['INCLUDES'] = []
