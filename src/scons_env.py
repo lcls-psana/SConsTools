@@ -16,6 +16,19 @@ from SCons.Script import *
 
 from trace import *
 
+def get_conda_env_path(fail_if_not_conda=True):
+    '''conda used to use CONDA_ENV_PATH, and now it is CONDA_PREFIX,
+    would be good to switch to conda_api for this
+    '''
+    if 'CONDA_PREFIX' in os.environ:
+        return os.environ['CONDA_PREFIX']
+    if 'CONDA_ENV_PATH' in os.environ: 
+        return os.environ['CONDA_ENV_PATH']
+    print >> sys.stderr, "Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active."
+    if fail_if_not_conda:
+        Exit(2)
+    else:
+        return None
 
 def _getNumCpus():
     # determin a number of CPUs in a system
@@ -75,7 +88,7 @@ def buildEnv () :
     env['CONDA']=not not_conda
 
     if env['CONDA']:
-        env['CONDA_ENV_PATH'] = os.environ['CONDA_ENV_PATH']
+        env['CONDA_ENV_PATH'] = get_conda_env_path()
         env['SKIP_BUILD_EXT'] = os.environ.get('SIT_SKIP_BUILD_EXT',False)
         env['EXTPKG_IN_MULTIPLE_LOC_OK'] = os.environ.get('SIT_EXTPKG_IN_MULTIPLE_LOC_OK', False)
 

@@ -15,6 +15,20 @@ from os.path import join as pjoin
 ########## start SConstruct script ###############
 cwd = os.getcwd()
 
+def get_conda_env_path(fail_if_not_conda=True):
+    '''conda used to use CONDA_ENV_PATH, and now it is CONDA_PREFIX,
+    would be good to switch to conda_api for this
+    '''
+    if 'CONDA_PREFIX' in os.environ:
+        return os.environ['CONDA_PREFIX']
+    if 'CONDA_ENV_PATH' in os.environ: 
+        return os.environ['CONDA_ENV_PATH']
+    print >> sys.stderr, "Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active."
+    if fail_if_not_conda:
+        Exit(2)
+    else:
+        return None
+
 #   check that all required envvars are defined
 for envVar in ['SIT_ARCH', 'SIT_RELEASE']:
     if os.environ.get(envVar, None) is None:
@@ -22,12 +36,10 @@ for envVar in ['SIT_ARCH', 'SIT_RELEASE']:
         Exit(2)
 
 if 'SIT_USE_CONDA' in os.environ:
-    if not 'CONDA_ENV_PATH' in os.environ:
-        print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH is not"
-        Exit(2)
+    conda_env_path = get_conda_env_path() # will exit if can't find it
     path_dirs = os.environ.get('PATH','').split(os.path.pathsep)
-    if len(path_dirs)==0 or os.path.join(os.environ['CONDA_ENV_PATH'], 'bin') not in path_dirs[0:2]:
-        print >> sys.stderr, "SIT_USE_CONDA defined but CONDA_ENV_PATH/bin is not at the first or second plath in the PATH"
+    if len(path_dirs)==0 or os.path.join(conda_env_path, 'bin') not in path_dirs[0:2]:
+        print >> sys.stderr, "SIT_USE_CONDA defined but %s/bin is not at the first or second plath in the PATH" % conda_env_path
         Exit(2)
 else:
     for envVar in ['SIT_ROOT']:
@@ -62,12 +74,12 @@ if os.environ.get('SIT_USE_CONDA', None):
         print >> sys.stderr, "building scons in older style release? " \
             "unset SIT_USE_CONDA"
         Exit(2)
-    if os.environ.get("CONDA_ENV_PATH", "") != conda_rel:
-        print >> sys.stderr, "* CONDA_ENV_PATH conflicts with release directory."
+    if get_conda_env_path() != conda_rel:
+        print >> sys.stderr, "* conda_env_path conflicts with release directory."
         print >> sys.stderr, "* They must agree for building."
-        print >> sys.stderr, "* Please run condaupgrade" \
+        print >> sys.stderr, "* Please run condarel --relupgrade" \
             " (for now, edit .sit_conda_env file)"
-#        Exit(2)
+        Exit(2)
     
 
 #
@@ -225,7 +237,7 @@ env.Default(all)
 # Special install target
 #
 if env['CONDA']:
-    destdir = env['CONDA_ENV_PATH']
+    destdir = get_conda_env_path()
     conda_install = env.CondaInstall([Dir(destdir)], [])
     env.AlwaysBuild(conda_install)
     env.Alias('conda-install', [conda_install])
@@ -293,3 +305,4 @@ trace( "Build env = "+pformat(env.Dictionary()), "<top>", 7 )
 trace("BUILD_TARGETS is " + pformat(map(str, BUILD_TARGETS)), "<top>", 1)
 trace("DEFAULT_TARGETS is " + pformat(map(str, DEFAULT_TARGETS)), "<top>", 1)
 trace("COMMAND_LINE_TARGETS is " + pformat(map(str, COMMAND_LINE_TARGETS)), "<top>", 1)
+
