@@ -46,7 +46,15 @@ from SCons.Script import *
 
 from trace import *
 from scons_functions import *
+from scons_env import get_conda_env_path
 
+def which_pdsdata_pkg_for_file_in_pdsdata(f):
+    # .../arch/$SIT_ARCH/geninc/pdsdata/package/File
+    if f[x-2] == 'xtc' : 
+        pkg = 'pdsdata'
+    else:
+        pkg = 'pdsdata_' + f[x-2]
+    return pkg
 #
 # Guess package name from the path of the (include) file
 #
@@ -69,12 +77,58 @@ _boostPackages = {
 def _guessBoostPackage ( p ) :
     return _boostPackages.get ( p, 'boost' )
 
-def _guessPackage ( path ):
+def _guessPackageFromFileInCondaEnv( path ):
+    trace ( "checking dependencies for %s"%path, "condaPkgDeps", 4 )
+    conda_prefix = get_conda_env_path(fail_if_not_conda=True)
+    conda_include = os.path.join(conda_prefix, 'include')
+    if not path.startswith(conda_include):
+        trace ( "doesn't start with conda_include: %s" % path, "condaPkgDeps", 4 )
+        return None
+    after = path.split(conda_include)[1]
+    after = after.split(os.sep)
+    if len(after)>0 and after[0]=='':
+        after.pop(0)
+    if len(after)==0:
+        trace ( "nothing after: %s" % path, "condaPkgDeps", 4 )
+        return None
+    if len(after)==1:
+        if after[0] in ['hdf5.h', 'hdf5_hl.h']:
+            trace ( "identified hdf5 in conda: %s" % path, "condaPkgDeps", 4 )
+            return 'hdf5'
+        if after[0]=='mpi.h':
+            # we assume openmpi provides the mpi implementation in the conda environments
+            trace ( "identified openmpi in conda: %s" % path, "condaPkgDeps", 4 )
+            return 'openmpi'
+        return None
+    if after[0]=='pdsdata':
+        trace ( "identified pdsdata in conda: %s" % path, "condaPkgDeps", 4 )
+        if after[1]=='xtc':
+            trace ( "xtc pdsdata, returning pdsdata: %s" % path, "condaPkgDeps", 4 )
+            return 'pdsdata'
+        pkg = 'pdsdata_%s' % after[1]
+        trace ( "%s pdsdata pkg for path=%s" % (pkg, path), "condaPkgDeps", 4 )
+        return pkg
     
+    if after[0]=='boost':
+        pkg =  _guessBoostPackage(after[1])
+        trace ( "boost pkg=%s for path=%s" % (pkg, path), "condaPkgDeps", 4 )
+        return pkg
+    trace ( "no package identified for after conda_include=%s" % (after,), "condaPkgDeps", 4 )
+    return None
+
+def _guessPackage ( path ):
+    env = DefaultEnvironment()
+    if env['CONDA']:
+        pkg = _guessPackageFromFileInCondaEnv(path)
+        if pkg:
+            return pkg
+
+                
     f = path.split(os.sep)
     f.reverse() # for easier counting and reverse searching
     
     trace ( 'path: %s' % f, '_guessPackage', 9 )
+
     #
     # First try to see if it comes from boost, in which case it
     # will be in the form .../arch/$SIT_ARCH/geninc/boost/.....
