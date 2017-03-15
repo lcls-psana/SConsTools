@@ -16,6 +16,19 @@ from SCons.Script import *
 
 from trace import *
 
+def get_conda_env_path(fail_if_not_conda=True):
+    '''conda used to use CONDA_ENV_PATH, and now it is CONDA_PREFIX,
+    would be good to switch to conda_api for this
+    '''
+    if 'CONDA_PREFIX' in os.environ:
+        return os.environ['CONDA_PREFIX']
+    if 'CONDA_ENV_PATH' in os.environ: 
+        return os.environ['CONDA_ENV_PATH']
+    print >> sys.stderr, "Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active."
+    if fail_if_not_conda:
+        Exit(2)
+    else:
+        return None
 
 def _getNumCpus():
     # determin a number of CPUs in a system
@@ -34,17 +47,8 @@ def buildEnv () :
     # use half of all CPUs
     SetOption('num_jobs', _getNumCpus()/2 or 1)
 
-    # SIT_ROOT
-    sit_root = os.environ["SIT_ROOT"]
-    
     # SIT_RELEASE
     sit_release = os.environ['SIT_RELEASE']
-
-    # default DESTDIR
-    destdir = pjoin(sit_root, "sw/releases", sit_release)
-
-    # SIT_EXTERNAL_SW
-    sit_external_sw = pjoin(sit_root, "sw/external")
 
     vars = Variables()
     vars.AddVariables(
@@ -56,16 +60,37 @@ def buildEnv () :
         ('SIT_ARCH', "Use to change the SIT_ARCH value during build", os.environ['SIT_ARCH']),
         ('SIT_RELEASE', "Use to change the SIT_RELEASE value during build", sit_release),
         ('SIT_REPOS', "Use to change the SIT_REPOS value during build", os.environ.get('SIT_REPOS', "")),
-        PathVariable('SIT_EXTERNAL_SW', "Use to change the SIT_EXTERNAL_SW value during build", sit_external_sw, PathVariable.PathIsDir),
         PathVariable('PKG_DEPS_FILE', "Name of the package dependency file", '.pkg_tree.pkl', PathVariable.PathAccept),
         PathVariable('PKG_LIST_FILE', "Name of the package list file", '/dev/stdout', PathVariable.PathAccept),
-        PathVariable('DESTDIR', "destination directory for install target", destdir, PathVariable.PathAccept),
         ('TRACE', "Set to positive value to trace processing", 0)
     )
+
+    not_conda = os.environ.get('SIT_USE_CONDA', None) is None
+    if not_conda:
+        # SIT_ROOT
+        sit_root = os.environ["SIT_ROOT"]
+
+        # default DESTDIR
+        destdir = pjoin(sit_root, "sw/releases", sit_release)
+
+        # SIT_EXTERNAL_SW
+        sit_external_sw = pjoin(sit_root, "sw/external")
+
+        vars.AddVariables(
+            PathVariable('SIT_EXTERNAL_SW', "Use to change the SIT_EXTERNAL_SW value during build", sit_external_sw, PathVariable.PathIsDir),
+            PathVariable('DESTDIR', "destination directory for install target", destdir, PathVariable.PathAccept),
+        )
+
 
     # make environment, also make it default
     env = DefaultEnvironment(ENV=os.environ, variables=vars)
     vars.GenerateHelpText(env)
+    env['CONDA']=not not_conda
+
+    if env['CONDA']:
+        env['CONDA_ENV_PATH'] = get_conda_env_path()
+        env['SKIP_BUILD_EXT'] = os.environ.get('SIT_SKIP_BUILD_EXT',False)
+        env['EXTPKG_IN_MULTIPLE_LOC_OK'] = os.environ.get('SIT_EXTPKG_IN_MULTIPLE_LOC_OK', False)
 
     # set trace level based on the command line value
     setTraceLevel(int(env['TRACE']))
@@ -97,12 +122,15 @@ def buildEnv () :
     libdir = "${ARCHDIR}/lib"
     pydir = "${ARCHDIR}/python"
     phpdir = "${ARCHDIR}/php"
+    extpkginstdir = "${ARCHDIR}/extpkgs"
     cpppath = ['.']   # this translates to package directory, not to top dir
     for r in all_sit_repos :
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc"))
         cpppath.append(pjoin(r, "include"))
     libpath = [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
-
+    if env['CONDA']:
+        libpath.append(pjoin(env['CONDA_ENV_PATH'],'lib'))
+        cpppath.append(pjoin(env['CONDA_ENV_PATH'],'include'))
     # set other variables in environment
     env.Replace(ARCHDIR=archdir,
                 ARCHINCDIR=archincdir,
@@ -110,10 +138,10 @@ def buildEnv () :
                 LIBDIR=libdir,
                 PYDIR=pydir,
                 PHPDIR=phpdir,
+                EXTPKGINSTDIR=extpkginstdir,
                 CPPPATH=cpppath,
                 LIBPATH=libpath,
                 LIB_ABI=lib_abi,
-                SIT_ROOT=sit_root,
                 SIT_ARCH_PROC=sit_arch_parts[0],
                 SIT_ARCH_OS=sit_arch_parts[1],
                 SIT_ARCH_COMPILER=sit_arch_parts[2],
@@ -134,15 +162,27 @@ def buildEnv () :
                 SCRIPT_SUBS = {},
                 DOC_TARGETS = {}
                 )
+    if not env['CONDA']:
+        env.Replace(SIT_ROOT=sit_root)
+
 
     # location of the tools
     toolpath = [ pjoin(r, "arch", sit_arch, "python/SConsTools/tools") for r in all_sit_repos ]
+    if env['CONDA']:
+        sconstools_dir_in_conda_env = os.path.split(__file__)[0]
+        tools_sub_dir = os.path.join(sconstools_dir_in_conda_env, 'tools')
+        toolpath.append(tools_sub_dir)
     env.Replace(TOOLPATH=toolpath)
-
+    
     # extend environment with tools
     tools = ['psdm_cplusplus', 'psdm_python', 'pyext', 'cython', 'symlink', 
              'pycompile', 'pylint', 'unittest', 'script_install', 'pkg_list', 
-             'release_install', 'special_scanners']
+             'special_scanners']
+    if env['CONDA']:
+        tools.append('conda_install')
+    else:
+        tools.append('release_install')
+
     trace ("toolpath = " + pformat(toolpath), "buildEnv", 3)
     for tool in tools:
         tool = env.Tool(tool, toolpath=toolpath)
@@ -158,8 +198,12 @@ def buildEnv () :
     # use alternative location for sconsign file
     env.SConsignFile(pjoin("build", sit_arch, ".sconsign"))
 
-    # may want to use "relative" RPATH
-    # env.Replace( RPATH = env.Literal("'$$ORIGIN/../lib'") )
+    if env['CONDA']:
+        conda_lib = pjoin(env['CONDA_ENV_PATH'], 'lib')
+        rpath_string = env.Literal("'$$ORIGIN/../lib:%s'" % conda_lib)
+        env.Replace( RPATH = rpath_string )
+        # need to make sure --enable-new-dtags is passed to the linker so that we can override 
+        # RPATH with LD_LIBRARY_PATH at run time
 
     # these lists will be filled by standard rules
     env['ALL_TARGETS']['INCLUDES'] = []
@@ -167,7 +211,8 @@ def buildEnv () :
     env['ALL_TARGETS']['BINS'] = []
     env['ALL_TARGETS']['TESTS'] = []
     env['ALL_TARGETS']['PYLINT'] = []
-
+   
+    
     # generate help
     Help(vars.GenerateHelpText(env))
 

@@ -13,6 +13,9 @@ qt_dir = "sw/external/qt"
 qt_ver = "4.8.5"
 
 def _qtdir(env):
+    if env['CONDA']:
+        return env['CONDA_ENV_PATH']
+    
     for arch in env['SIT_ARCH'], env['SIT_ARCH_BASE'], env['SIT_ARCH_BASE']+'-opt':
         p = os.path.join(env['SIT_ROOT'], qt_dir, qt_ver, arch)
         trace ( "checking QTDIR="+p, "qt4", 2 )
@@ -33,7 +36,6 @@ def create_builder(env):
     return moc
 
 def generate(env):
-    
     qtdir = _qtdir(env)
     if not qtdir: fail("Cannot determine QTDIR")
 
@@ -43,7 +45,10 @@ def generate(env):
     
     # set env
     env["QTDIR"] = qtdir
-    env["QT4_PREFIX"] = os.path.join(env['SIT_ROOT'], qt_dir, qt_ver)
+    if env["CONDA"]:
+        env["QT4_PREFIX"] = env["CONDA_ENV_PATH"]
+    else:
+        env["QT4_PREFIX"] = os.path.join(env['SIT_ROOT'], qt_dir, qt_ver)
     env["QT4_VER"] = qt_ver
     env["QT4_MOC"] = "$QTDIR/bin/moc"
     env["QT4_MOCCOM"] = "$QT4_MOC $QT4_MOCFLAGS -o $TARGET $SOURCE"
