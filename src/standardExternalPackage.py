@@ -119,6 +119,7 @@ def standardExternalPackage(package, **kw) :
         DEPS     - names of other packages that we depend upon
         PKGINFO  - package information, such as RPM package name
         OPTIONAL - If true then missing directories do not cause build errors
+        LOCAL    - If true, then we are trying to override a conda package with a local one
         DOCGEN   - if this is is a string or list of strings then it should be name(s) of document 
                    generators, otherwise it is a dict with generator name as key and a list of 
                    file/directory names as values (may also be a string).
@@ -136,16 +137,19 @@ def standardExternalPackage(package, **kw) :
     if env['CONDA']:
         cm = CondaMeta(package, mustExist=False)
         if cm.exists and (cm.prefix() != prefix):
-            if not env['EXTPKG_IN_MULTIPLE_LOC_OK']:
-                fail(("standardExternalPackage - creating external package "
-                      "for=%s that exists in conda, but using location other than "
-                      "that in the conda environment. Best to use standardCondaPackage to "
-                      "wrap an existing conda package (instead of this function) or set the "
-                      "environment variable SIT_EXTPKG_IN_MULTIPLE_LOC_OK=1 to try "
-                      "to mask the conda version of the package. The two prefixes=\n'%s'\n'%s'") % 
-                     (package, prefix, cm.prefix()))
-            else:
-                warning("external package %s exists in conda env" % package)
+            local_pkg = kw.get('LOCAL', False)
+            if (not local_pkg):
+                if not env['EXTPKG_IN_MULTIPLE_LOC_OK']:
+                    fail(("standardExternalPackage - creating external package "
+                          "for=%s that exists in conda, but using location other than "
+                          "that in the conda environment. Best to use standardCondaPackage to "
+                          "wrap an existing conda package (instead of this function) or set the "
+                          "environment variable SIT_EXTPKG_IN_MULTIPLE_LOC_OK=1 to try "
+                          "to mask the conda version of the package, or pass LOCAL=True "
+                          "to this function. The two prefixes=\n'%s'\n'%s'") % 
+                         (package, prefix, cm.prefix()))
+                else:
+                    warning("external package %s exists in conda env" % package)
 
     # link include directory
     inc_dir = _get_dir(package, 'INCDIR', kw, env, prefix)
