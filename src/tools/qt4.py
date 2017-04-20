@@ -10,16 +10,11 @@ from SConsTools.scons_functions import *
 
 # Qt4 directory location relative to SIT_ROOT
 qt_dir = "sw/external/qt"
-qt_ver = "4.8.5"
 
 def _qtdir(env):
     if env['CONDA']:
         return env['CONDA_ENV_PATH']
-    
-    for arch in env['SIT_ARCH'], env['SIT_ARCH_BASE'], env['SIT_ARCH_BASE']+'-opt':
-        p = os.path.join(env['SIT_ROOT'], qt_dir, qt_ver, arch)
-        trace ( "checking QTDIR="+p, "qt4", 2 )
-        if os.path.isdir(p): return p
+    raise Exception("conda only now!")
 
 mocAction = Action("$QT4_MOCCOM")
 
@@ -40,16 +35,13 @@ def generate(env):
     if not qtdir: fail("Cannot determine QTDIR")
 
     # extend CPPPATH
-    p = os.path.join(qtdir, 'include')
+    p = os.path.join(qtdir, 'include', 'qt')
     incdirs = [p, pjoin(p, 'QtCore'), pjoin(p, 'QtGui')]
     
     # set env
     env["QTDIR"] = qtdir
-    if env["CONDA"]:
-        env["QT4_PREFIX"] = env["CONDA_ENV_PATH"]
-    else:
-        env["QT4_PREFIX"] = os.path.join(env['SIT_ROOT'], qt_dir, qt_ver)
-    env["QT4_VER"] = qt_ver
+    assert env["CONDA"]
+    env["QT4_PREFIX"] = env["CONDA_ENV_PATH"]
     env["QT4_MOC"] = "$QTDIR/bin/moc"
     env["QT4_MOCCOM"] = "$QT4_MOC $QT4_MOCFLAGS -o $TARGET $SOURCE"
     env["QT4_MOCFLAGS"] = ""
