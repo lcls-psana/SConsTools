@@ -108,7 +108,8 @@ def pyext_coms(platform):
                        "$PYEXTCXXFLAGS $PYEXTCCFLAGS $_CCCOMCOM "\
                        "$_PYEXTCPPINCFLAGS $SOURCES"
         pyext_linkcom = "$PYEXTLINK -o $TARGET $PYEXTLINKFLAGS "\
-                        "$SOURCES $_LIBDIRFLAGS $_LIBFLAGS $_PYEXTRUNTIME"
+                        " -Wl,-rpath='$$ORIGIN/../lib:$$ORIGIN/../python:$CONDA_ENV_PATH/lib:$CONDA_ENV_PATH/lib/python2.7/site-packages' "\
+                        "$SOURCES $_LIBDIRFLAGS $_LIBFLAGS $_PYEXTRUNTIME" 
 
     if platform == 'darwin':
         pyext_linkcom += ' $_FRAMEWORKPATH $_FRAMEWORKS $FRAMEWORKSFLAGS'
