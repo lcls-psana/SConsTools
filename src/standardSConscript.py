@@ -226,7 +226,11 @@ def standardPyExt( env, **kw ) :
 
         extmodname = kw.get('PYEXTMOD', pkg)
 
-        objects = [env.PythonObject(src) for src in extsrcs]
+        binkw = {}
+        if 'CCFLAGS' in kw:
+            binkw['CCFLAGS'] = env['CCFLAGS'] + ' ' + kw['CCFLAGS']
+
+        objects = [env.PythonObject(src, **binkw) for src in extsrcs]
         # if package builds standard library then add it to the link
         libs = DefaultEnvironment()['PKG_TREE_LIB'].get(pkg, [])
         if libs: libs = [pkg]
