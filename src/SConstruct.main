@@ -106,7 +106,7 @@ for dirs in [("SConsTools/src", "SConsTools"), ("SConsTools/src/tools", "SConsTo
         for f in links - pys:
             try:
                 os.remove(pjoin(d, f))
-            except Exception, e:
+            except Exception as e:
                 print("Failed to remove file " + pjoin(d, f), file=sys.stderr)
                 print(str(e), file=sys.stderr)
                 print("Check your permissions and AFS token", file=sys.stderr)

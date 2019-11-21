@@ -43,7 +43,7 @@ class _unitTest :
             if ret != 0 :
                 try:
                     logfilecontents = file(out).read()
-                except Exception, e:
+                except Exception as e:
                     logfilecontents = "-- could not read logfile. Exception received:\n"
                     logfilecontents += str(e)
                     logfilecontents += "\n----------"
