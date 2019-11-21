@@ -1,3 +1,4 @@
+from __future__ import print_function
 #!/bin/env scons
 #===============================================================================
 #
@@ -23,7 +24,7 @@ def get_conda_env_path(fail_if_not_conda=True):
         return os.environ['CONDA_PREFIX']
     if 'CONDA_ENV_PATH' in os.environ: 
         return os.environ['CONDA_ENV_PATH']
-    print >> sys.stderr, "Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active."
+    print("Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active.", file=sys.stderr)
     if fail_if_not_conda:
         Exit(2)
     else:
@@ -32,19 +33,19 @@ def get_conda_env_path(fail_if_not_conda=True):
 #   check that all required envvars are defined
 for envVar in ['SIT_ARCH', 'SIT_RELEASE']:
     if os.environ.get(envVar, None) is None:
-        print >> sys.stderr,  "Environment variable %s is not defined" % envVar
+        print("Environment variable %s is not defined" % envVar, file=sys.stderr)
         Exit(2)
 
 if 'SIT_USE_CONDA' in os.environ:
     conda_env_path = get_conda_env_path() # will exit if can't find it
     path_dirs = os.environ.get('PATH','').split(os.path.pathsep)
     if len(path_dirs)==0 or os.path.join(conda_env_path, 'bin') not in path_dirs[0:2]:
-        print >> sys.stderr, "SIT_USE_CONDA defined but %s/bin is not at the first or second plath in the PATH" % conda_env_path
+        print("SIT_USE_CONDA defined but %s/bin is not at the first or second plath in the PATH" % conda_env_path, file=sys.stderr)
         Exit(2)
 else:
     for envVar in ['SIT_ROOT']:
         if os.environ.get(envVar, None) is None:
-            print >> sys.stderr,  "Environment variable %s is not defined" % envVar
+            print("Environment variable %s is not defined" % envVar, file=sys.stderr)
             Exit(2)
         
 
@@ -54,14 +55,14 @@ sit_arch = os.environ["SIT_ARCH"]
 try:
     test_rel = file('.sit_release').read().strip()
 except IOError:
-    print >> sys.stderr, "File .sit_release does not exist or unreadable."
-    print >> sys.stderr, "Trying to run scons outside release directory?"
+    print("File .sit_release does not exist or unreadable.", file=sys.stderr)
+    print("Trying to run scons outside release directory?", file=sys.stderr)
     Exit(2)
 if os.environ["SIT_RELEASE"] != test_rel:
-    print >> sys.stderr, "* SIT_RELEASE conflicts with release directory"
-    print >> sys.stderr, "* SIT_RELEASE =", os.environ["SIT_RELEASE"]
-    print >> sys.stderr, "* .sit_release =", test_rel
-    print >> sys.stderr, "* Please run sit_setup or relupgrade"
+    print("* SIT_RELEASE conflicts with release directory", file=sys.stderr)
+    print("* SIT_RELEASE =", os.environ["SIT_RELEASE"], file=sys.stderr)
+    print("* .sit_release =", test_rel, file=sys.stderr)
+    print("* Please run sit_setup or relupgrade", file=sys.stderr)
     Exit(2)
 
 # check conda
@@ -69,16 +70,16 @@ if os.environ.get('SIT_USE_CONDA', None):
     try:
         conda_rel = file('.sit_conda_env').read().strip()
     except IOError:
-        print >> sys.stderr, "SIT_USE_CONDA is true, but file .sit_conda_env " \
-            "does not exist or unreadable."
-        print >> sys.stderr, "building scons in older style release? " \
-            "unset SIT_USE_CONDA"
+        print("SIT_USE_CONDA is true, but file .sit_conda_env " \
+            "does not exist or unreadable.", file=sys.stderr)
+        print("building scons in older style release? " \
+            "unset SIT_USE_CONDA", file=sys.stderr)
         Exit(2)
     if get_conda_env_path() != conda_rel:
-        print >> sys.stderr, "* conda_env_path conflicts with release directory."
-        print >> sys.stderr, "* They must agree for building."
-        print >> sys.stderr, "* Please run condarel --relupgrade" \
-            " (for now, edit .sit_conda_env file)"
+        print("* conda_env_path conflicts with release directory.", file=sys.stderr)
+        print("* They must agree for building.", file=sys.stderr)
+        print("* Please run condarel --relupgrade" \
+            " (for now, edit .sit_conda_env file)", file=sys.stderr)
         Exit(2)
     
 
@@ -106,9 +107,9 @@ for dirs in [("SConsTools/src", "SConsTools"), ("SConsTools/src/tools", "SConsTo
             try:
                 os.remove(pjoin(d, f))
             except Exception, e:
-                print >> sys.stderr, "Failed to remove file " + pjoin(d, f)
-                print >> sys.stderr, str(e)
-                print >> sys.stderr, "Check your permissions and AFS token"
+                print("Failed to remove file " + pjoin(d, f), file=sys.stderr)
+                print(str(e), file=sys.stderr)
+                print("Check your permissions and AFS token", file=sys.stderr)
                 Exit(2)
 
         # add missing links (make links relative)

@@ -6,6 +6,7 @@ AUTHORS:
  - Andy Salnikov
 
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -42,11 +43,11 @@ class _makePkgList:
             trace("package %s, pkginfos %s" % (pkg, pkginfos), "makePkgList", 4)
             for pkginfo in pkginfos:
                 pkginfo = [env.subst(info) for info in pkginfo]
-                print >> out, "%s$%s" % (pkg, '%'.join(pkginfo))
+                print("%s$%s" % (pkg, '%'.join(pkginfo)), file=out)
 
         # add also scons, need to guess version name and python version (which is python running scons)
         pkg = "scons-%s-python%d.%d" % (SCons.__version__, sys.version_info[0], sys.version_info[1])
-        print >> out, "scons$scons%%%s%%python%d.%d" % (SCons.__version__, sys.version_info[0], sys.version_info[1])
+        print("scons$scons%%%s%%python%d.%d" % (SCons.__version__, sys.version_info[0], sys.version_info[1]), file=out)
 
         out.close()
 

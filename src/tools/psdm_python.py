@@ -1,6 +1,7 @@
 """
 Tool which selects correct python version for PSDM releases.
 """
+from __future__ import print_function
 import os
 import sys
 from os.path import join as pjoin
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     
     if len(sys.argv) > 1:
         for k in sys.argv[1:]:
-            print env.get(k, '')
+            print(env.get(k, ''))
     else:
         for k, v in env.items():
-            if k.startswith('PYTHON') and type(v) == str: print '%s=%s' % (k, v)
+            if k.startswith('PYTHON') and type(v) == str: print('%s=%s' % (k, v))

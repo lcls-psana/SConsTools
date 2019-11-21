@@ -1,3 +1,4 @@
+from __future__ import print_function
 #===============================================================================
 #
 # Main SCons script for SIT release building
@@ -24,7 +25,7 @@ def get_conda_env_path(fail_if_not_conda=True):
         return os.environ['CONDA_PREFIX']
     if 'CONDA_ENV_PATH' in os.environ: 
         return os.environ['CONDA_ENV_PATH']
-    print >> sys.stderr, "Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active."
+    print("Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active.", file=sys.stderr)
     if fail_if_not_conda:
         Exit(2)
     else:

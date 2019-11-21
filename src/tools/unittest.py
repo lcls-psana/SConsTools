@@ -6,6 +6,7 @@ AUTHORS:
  - Andy Salnikov
 
 """
+from __future__ import print_function
 
 import os
 import time
@@ -49,16 +50,16 @@ class _unitTest :
                 l = '*** Unit test failed, contens of log file: '+out+' ***\n'
                 s = '*' * len(l)
                 l += logfilecontents 
-                print s
-                print l
-                print s
+                print(s)
+                print(l)
+                print(s)
                 return ret
             else :
-                print "UnitTest successful: "+bin
+                print("UnitTest successful: "+bin)
             
         except :
             
-            print 'Failure running unit test '+out
+            print('Failure running unit test '+out)
             
     def strfunction ( self, target, source, env ):
         try :

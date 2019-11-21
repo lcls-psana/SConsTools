@@ -1,3 +1,4 @@
+from __future__ import print_function
 #===============================================================================
 #
 # SConscript function to build external package
@@ -50,7 +51,7 @@ def buildExternalPackage(pkg, buildcmds, PREFIX, ONE_TARGET,
 
     
     for cmd in buildcmds:
-        print cmd
+        print(cmd)
         assert 0 == os.system(cmd)
 
     os.chdir(orig_dir)

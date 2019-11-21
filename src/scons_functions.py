@@ -1,3 +1,4 @@
+from __future__ import print_function
 #===============================================================================
 #
 # Main SCons script for SIT release building
@@ -20,14 +21,14 @@ from SCons.Script import *
 # ==========================
 
 def info(msg):
-    print >> sys.stdout, msg
+    print(msg, file=sys.stdout)
 
 def warning(msg):
-    print >> sys.stderr, "WARNING:", msg
+    print("WARNING:", msg, file=sys.stderr)
 
 def fail ( msg, code = 2 ):
-    print >> sys.stderr, msg
-    print >> sys.stderr, "Exiting with code %d" % code
+    print(msg, file=sys.stderr)
+    print("Exiting with code %d" % code, file=sys.stderr)
     Exit(code)
 
 #

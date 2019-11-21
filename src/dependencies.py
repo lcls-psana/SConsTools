@@ -35,6 +35,7 @@ being the Node object of the built executable and the value as a list
 of the package names that executable needs to link to.
  
 """
+from __future__ import print_function
 
 import os
 import sys
@@ -387,4 +388,4 @@ class PrintDependencies(object):
                 
         for pkg in sorted(deptree.keys()):
             deps = sorted(deptree[pkg])
-            print pkg, "->", ' '.join(deps)
+            print(pkg, "->", ' '.join(deps))
