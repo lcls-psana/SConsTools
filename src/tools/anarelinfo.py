@@ -32,7 +32,7 @@ def parsePackageInfo():
         warning('file %s not found - no tags information available.' % PSANA_CONDA_TAGS)
         return None
 
-    for ln in file(PSANA_CONDA_TAGS,'r').read().split('\n'):
+    for ln in open(PSANA_CONDA_TAGS,'r').read().split('\n'):
         ln = ln.strip()
         if len(ln)==0: continue
         flds = ln.split()
@@ -73,7 +73,7 @@ def mkPkgTree(pkgname):
 def generateAnaRelInfoFromPackageList(pkgname='anarelinfo'):
     ####### helper
     def writeFile(fname, txt):
-        fout = file(fname,'w')
+        fout = open(fname,'w')
         fout.write(txt)
         fout.close()
         info("wrote %s" % fname)
@@ -84,7 +84,7 @@ def generateAnaRelInfoFromPackageList(pkgname='anarelinfo'):
         warning(".sit_release file doesn't exist, aborting.")
         return False
 
-    relverstr = file('.sit_release').read().strip()
+    relverstr = open('.sit_release').read().strip()
 
     pkginfo = parsePackageInfo()
     if pkginfo is None:

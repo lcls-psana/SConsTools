@@ -47,7 +47,7 @@ class CondaMeta(object):
 
         matches = []
         for cand in glob(pjoin(metadir, '%s-*.json'%pkg)):
-            pkgMeta = json.load(file(cand,'r'))
+            pkgMeta = json.load(open(cand,'r'))
             if pkgMeta['name'] == pkg:
                 matches.append((pkgMeta['version'], pkgMeta))
 

@@ -42,7 +42,7 @@ class _unitTest(object) :
     
             if ret != 0 :
                 try:
-                    logfilecontents = file(out).read()
+                    logfilecontents = open(out).read()
                 except Exception as e:
                     logfilecontents = "-- could not read logfile. Exception received:\n"
                     logfilecontents += str(e)

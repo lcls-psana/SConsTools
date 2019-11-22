@@ -122,7 +122,7 @@ def standardMoc( env, **kw ) :
     headers = Glob("include/*.h", source=True)
     headers = [str(h) for h in headers]
 
-    headers = [h for h in headers if 'Q_OBJECT' in file(h).read()]
+    headers = [h for h in headers if 'Q_OBJECT' in open(h).read()]
     trace ( "moc headers = "+str(list(map(str,headers))), "SConscript", 2 )
 
     for h in headers:
