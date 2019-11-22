@@ -32,7 +32,7 @@ class CondaMeta(object):
 
         provides access to includes, libs, and pkg libs.
 
-        ARGS: 
+        ARGS:
 
            pkg:  the package name
            mustExist - call scons Fail is package not in conda
@@ -53,7 +53,7 @@ class CondaMeta(object):
 
         if len(matches)==0:
             if mustExist:
-                fail("No json file found for pkg=%s in cond env=%s" % 
+                fail("No json file found for pkg=%s in cond env=%s" %
                      (pkg, self.env['CONDA_ENV_PATH']))
                 return
             else:
@@ -134,7 +134,7 @@ class CondaMeta(object):
                     (lib.endswith('.so') or lib.find('.so.') >0) ]
 
         return libFiles
-    
+
     def staticlibs(self):
         assert self.exists
         libFiles = self._getFilesInSubDir('lib')
@@ -165,4 +165,4 @@ class CondaMeta(object):
                 files.append(fname[nn:])
         return files
 
-        
+

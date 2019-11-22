@@ -20,10 +20,10 @@ def copyFile(src, dataDir):
     dest = os.path.join(dataDir, src)
     shutil.copy2(src, dest)
     info("copied %s -> %s" % (src, dest))
-        
+
 # lines in psana-conda-tags should look like this:
-# RegDB                                  conda_branch=False                      repo=psdm                     subdir=None                        tag=V00-03-07      
-# SConsTools                             conda_branch=True                       repo=psdm                     subdir=None           
+# RegDB                                  conda_branch=False                      repo=psdm                     subdir=None                        tag=V00-03-07
+# SConsTools                             conda_branch=True                       repo=psdm                     subdir=None
 # note - 4 or 5 fields
 def parsePackageInfo():
     global PSANA_CONDA_TAGS
@@ -36,7 +36,7 @@ def parsePackageInfo():
         ln = ln.strip()
         if len(ln)==0: continue
         flds = ln.split()
-        if len(ln)<1: 
+        if len(ln)<1:
             warning("unexpected error, ln=%s has no fields?")
             return None
         pkg = flds[0]
@@ -102,7 +102,7 @@ def generateAnaRelInfoFromPackageList(pkgname='anarelinfo'):
     for pkg, tagstr in pkginfo.items():
         init_dot_py += "  '%s':'%s',\n" % (pkg, tagstr)
     init_dot_py += "}\n"
-    init_dot_py_fname = os.path.join(srcDir, '__init__.py') 
+    init_dot_py_fname = os.path.join(srcDir, '__init__.py')
     writeFile(init_dot_py_fname, init_dot_py)
     py_compile.compile(init_dot_py_fname)
 

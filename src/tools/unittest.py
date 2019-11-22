@@ -22,24 +22,24 @@ def _fmtList ( lst ):
     return '[' + ','.join(map(str, lst)) + ']'
 
 class _unitTest(object) :
-    
+
     def __call__ ( self, target, source, env ) :
         """Both target and source should be a single file"""
         if len(target) != 1 :
             fail ( "unexpected number of targets for unitTest: "+str(target) )
         if len(source) != 1 :
             fail ( "unexpected number of sources for unitTest: "+str(source) )
-    
+
         out = str(target[0])
         bin = str(source[0])
-    
+
         try :
-    
-            cmd = bin+ ' > ' + out + ' 2>&1' 
+
+            cmd = bin+ ' > ' + out + ' 2>&1'
             trace ( "Executing unitTest `%s'" % ( bin ), "unitTest", 3 )
             time.sleep(1)
             ret = os.system ( cmd )
-    
+
             if ret != 0 :
                 try:
                     logfilecontents = open(out).read()
@@ -49,18 +49,18 @@ class _unitTest(object) :
                     logfilecontents += "\n----------"
                 l = '*** Unit test failed, contens of log file: '+out+' ***\n'
                 s = '*' * len(l)
-                l += logfilecontents 
+                l += logfilecontents
                 print(s)
                 print(l)
                 print(s)
                 return ret
             else :
                 print("UnitTest successful: "+bin)
-            
+
         except :
-            
+
             print('Failure running unit test '+out)
-            
+
     def strfunction ( self, target, source, env ):
         try :
             return "Running UnitTest: \"" + str(source[0]) + "\""

@@ -23,7 +23,7 @@ def get_conda_env_path(fail_if_not_conda=True):
     '''
     if 'CONDA_PREFIX' in os.environ:
         return os.environ['CONDA_PREFIX']
-    if 'CONDA_ENV_PATH' in os.environ: 
+    if 'CONDA_ENV_PATH' in os.environ:
         return os.environ['CONDA_ENV_PATH']
     print("Neither CONDA_PREFIX nor CONDA_ENV_PATH defined. It does not look like a conda environment is active.", file=sys.stderr)
     if fail_if_not_conda:
@@ -108,15 +108,15 @@ def buildEnv () :
     sit_arch_base = '-'.join(sit_arch_parts[0:3])
 
     # LIB_ABI will translate either to lib or lib64 depending on which architecture we are
-    lib_abis = {'x86_64-rhel5': "lib64", 
-                'x86_64-rhel6': "lib64", 
+    lib_abis = {'x86_64-rhel5': "lib64",
+                'x86_64-rhel6': "lib64",
                 'x86_64-rhel7': "lib64",
-                'x86_64-suse11': "lib64", 
-                'x86_64-suse12': "lib64", 
+                'x86_64-suse11': "lib64",
+                'x86_64-suse12': "lib64",
                 'x86_64-ubu12': 'lib/x86_64-linux-gnu'}
     lib_abi = lib_abis.get(sit_arch_parts[0]+'-'+sit_arch_parts[1], "lib")
 
-    # build all paths    
+    # build all paths
     archdir = pjoin("#arch/", sit_arch)
     archincdir = "${ARCHDIR}/geninc"
     bindir = "${ARCHDIR}/bin"
@@ -174,10 +174,10 @@ def buildEnv () :
         tools_sub_dir = os.path.join(sconstools_dir_in_conda_env, 'tools')
         toolpath.append(tools_sub_dir)
     env.Replace(TOOLPATH=toolpath)
-    
+
     # extend environment with tools
-    tools = ['psdm_cplusplus', 'psdm_python', 'pyext', 'cython', 'symlink', 
-             'pycompile', 'pylint', 'unittest', 'script_install', 'pkg_list', 
+    tools = ['psdm_cplusplus', 'psdm_python', 'pyext', 'cython', 'symlink',
+             'pycompile', 'pylint', 'unittest', 'script_install', 'pkg_list',
              'special_scanners']
     if env['CONDA']:
         tools.append('conda_install')
@@ -203,7 +203,7 @@ def buildEnv () :
         conda_lib = pjoin(env['CONDA_ENV_PATH'], 'lib')
         rpath_string = env.Literal("'$$ORIGIN/../lib:%s'" % conda_lib)
         env.Replace( RPATH = rpath_string )
-        # need to make sure --enable-new-dtags is passed to the linker so that we can override 
+        # need to make sure --enable-new-dtags is passed to the linker so that we can override
         # RPATH with LD_LIBRARY_PATH at run time
 
     # these lists will be filled by standard rules
@@ -212,8 +212,8 @@ def buildEnv () :
     env['ALL_TARGETS']['BINS'] = []
     env['ALL_TARGETS']['TESTS'] = []
     env['ALL_TARGETS']['PYLINT'] = []
-   
-    
+
+
     # generate help
     Help(vars.GenerateHelpText(env))
 

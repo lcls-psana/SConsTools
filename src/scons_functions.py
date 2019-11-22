@@ -45,17 +45,17 @@ def mkdirOrFail ( d ) :
 #
 # Create the links in the release directory to package directories, e.g.:
 #
-#  TOP/include/Package -> ../Package/include 
+#  TOP/include/Package -> ../Package/include
 #
 def makePackageLinks ( dirname, packagelist ) :
-    
+
     packageset = set(packagelist)
     try:
         existing = set(os.listdir(dirname))
     except OSError:
         # likely does not exist
         existing = set()
-    
+
     # links to delete
     extra = existing - packageset
     for f in extra :
@@ -65,7 +65,7 @@ def makePackageLinks ( dirname, packagelist ) :
             trace ( "Removing link `%s'" % fname, "pkgLinks", 1 )
         except :
             fail ( "Failed to remove `%s'" % ( fname, ) )
-            
+
     # links to create
     missing = packageset - existing
     for f in missing :
@@ -82,19 +82,19 @@ def makePackageLinks ( dirname, packagelist ) :
 
 def MyGlob(pattern, ondisk=True, source=True, strings=False, recursive=False):
     """ Recursive glob function """
-    
+
     dirname = os.path.dirname(pattern)
     pattern = os.path.basename(pattern)
-    
+
     trace ( "dirname=%s pattern=%s" % (dirname, pattern), "MyGlob", 7 )
     names = Glob(os.path.join(dirname, pattern), ondisk, source, strings)
 
     if recursive :
-        
+
         for entry in Glob(os.path.join(dirname, '*'), source=True, strings=False):
-            
+
             #trace ( "entry=`%s' %s class=%s" % (entry.get_abspath(), repr(entry), entry.__class__), "MyGlob", 7 )
             if entry.__class__ is SCons.Node.FS.Dir :
                 names += MyGlob(os.path.join(str(entry), pattern), ondisk, source, strings, recursive)
-                
+
     return names
