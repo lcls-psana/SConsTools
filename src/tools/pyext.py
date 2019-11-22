@@ -165,7 +165,7 @@ def set_configuration(env):
     env.AppendUnique(PYEXTLINKFLAGS = env['PYEXT_ALLOW_UNDEFINED'])
 
 def ifnotset(env, name, value):
-    if not env.has_key(name):
+    if name not in env:
         env[name] = value
 
 def generate(env):

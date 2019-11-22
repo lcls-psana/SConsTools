@@ -50,7 +50,7 @@ class _scriptInstall :
         f = open( target, 'w' )
         f.write ( "".join(data) )
         f.close()
-        os.chmod ( target, 0755 )
+        os.chmod ( target, 0o755 )
 
     def strfunction ( self, target, source, env ):
         try :
