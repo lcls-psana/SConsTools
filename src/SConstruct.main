@@ -224,7 +224,7 @@ pkg2tests = collections.defaultdict(list)
 for testTarget in env['ALL_TARGETS']['TESTS']:
     pkgName = os.path.basename(os.path.split(str(testTarget))[0])
     pkg2tests[pkgName].append(testTarget)
-for pkg, pkgTests in pkg2tests.iteritems():
+for pkg, pkgTests in pkg2tests.items():
     env.Alias('test-%s'%pkg, pkgTests)
 
 # these are not strictly necessary, just to make it look more make-ish
@@ -303,7 +303,7 @@ env.Alias('doc', docTargets)
 env.AlwaysBuild(docTargets)
 
 trace( "Build env = "+pformat(env.Dictionary()), "<top>", 7 )
-trace("BUILD_TARGETS is " + pformat(map(str, BUILD_TARGETS)), "<top>", 1)
-trace("DEFAULT_TARGETS is " + pformat(map(str, DEFAULT_TARGETS)), "<top>", 1)
-trace("COMMAND_LINE_TARGETS is " + pformat(map(str, COMMAND_LINE_TARGETS)), "<top>", 1)
+trace("BUILD_TARGETS is " + pformat(list(map(str, BUILD_TARGETS))), "<top>", 1)
+trace("DEFAULT_TARGETS is " + pformat(list(map(str, DEFAULT_TARGETS))), "<top>", 1)
+trace("COMMAND_LINE_TARGETS is " + pformat(list(map(str, COMMAND_LINE_TARGETS))), "<top>", 1)
 

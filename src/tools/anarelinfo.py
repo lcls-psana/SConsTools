@@ -99,7 +99,7 @@ def generateAnaRelInfoFromPackageList(pkgname='anarelinfo'):
 
     init_dot_py = "version='%s'\n" % relverstr
     init_dot_py += "pkgtags={  \n"
-    for pkg, tagstr in pkginfo.iteritems():
+    for pkg, tagstr in pkginfo.items():
         init_dot_py += "  '%s':'%s',\n" % (pkg, tagstr)
     init_dot_py += "}\n"
     init_dot_py_fname = os.path.join(srcDir, '__init__.py') 

@@ -81,7 +81,7 @@ def copytree(src, dest, link_prefix):
     shutil.copystat(src, dest)
     return num_files_copied
 
-class _makeCondaInstall:
+class _makeCondaInstall(object):
 
     def __call__(self, target, source, env) :
         """Target should be a single file, no source is needed"""
@@ -118,7 +118,7 @@ class _makeCondaInstall:
                          os.path.join('arch', sit_arch, 'python'):sp_dir,
         }
         
-        for releaseDir, condaDir in release2conda.iteritems():
+        for releaseDir, condaDir in release2conda.items():
             if not os.path.exists(releaseDir):
                 warning("Release path %s does not exist, will not install from it" % releaseDir)
                 continue

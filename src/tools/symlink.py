@@ -19,7 +19,7 @@ from SConsTools.scons_functions import *
 def _fmtList ( lst ):
     return '[' + ','.join(map(str, lst)) + ']'
 
-class _makeSymlink :
+class _makeSymlink(object) :
     
     def __init__(self, relative=False):
         self._rel = relative

@@ -46,7 +46,7 @@ def _getNumCpus():
 def buildEnv () :
 
     # use half of all CPUs
-    SetOption('num_jobs', _getNumCpus()/2 or 1)
+    SetOption('num_jobs', _getNumCpus()//2 or 1)
 
     # SIT_RELEASE
     sit_release = os.environ['SIT_RELEASE']

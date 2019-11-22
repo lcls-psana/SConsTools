@@ -92,7 +92,7 @@ def standardSConscript( **kw ) :
     standardBins ( env, **ukw )
     standardTests ( env, **ukw )
 
-    pymods = filter(None, [pymod, pyext])
+    pymods = [_f for _f in [pymod, pyext] if _f]
     defdoc = {'doxy-all': pkg, 'pydoc-all': pymods}
     docgen = kw.get('DOCGEN', defdoc)
     if isinstance(docgen, (six.binary_type, six.text_type)):
@@ -123,7 +123,7 @@ def standardMoc( env, **kw ) :
     headers = [str(h) for h in headers]
 
     headers = [h for h in headers if 'Q_OBJECT' in file(h).read()]
-    trace ( "moc headers = "+str(map(str,headers)), "SConscript", 2 )
+    trace ( "moc headers = "+str(list(map(str,headers))), "SConscript", 2 )
 
     for h in headers:
         base = os.path.splitext(os.path.basename(h))[0]
@@ -139,7 +139,7 @@ def standardLib( env, **kw ) :
     libsrcs.sort()
     if libsrcs :
 
-        trace ( "libsrcs = "+str(map(str,libsrcs)), "SConscript", 2 )
+        trace ( "libsrcs = "+str(list(map(str,libsrcs))), "SConscript", 2 )
 
         pkg = _getpkg( kw )
 
@@ -176,7 +176,7 @@ def standardPyLib( env, **kw ) :
 
         pydir = env['PYDIR']
 
-        trace ( "pysrcs = "+str(map(str,pysrcs)), "SConscript", 2 )
+        trace ( "pysrcs = "+str(list(map(str,pysrcs))), "SConscript", 2 )
 
         # python files area installed into python/Package
         doinit = True
@@ -212,15 +212,15 @@ def standardPyExt( env, **kw ) :
 
     # check for Cython files first
     cysrcs = Flatten([MyGlob("pyext/*."+ext, source=True, strings=True, recursive=True) for ext in _cython_ext])
-    trace ( "cysrcs = "+str(map(str, cysrcs)), "SConscript", 2 )
+    trace ( "cysrcs = "+str(list(map(str, cysrcs))), "SConscript", 2 )
     extsrcs = [env.Cython(src) for src in cysrcs]
-    trace ( "pyextsrc = "+str(map(str, extsrcs)), "SConscript", 2 )
+    trace ( "pyextsrc = "+str(list(map(str, extsrcs))), "SConscript", 2 )
 
     # this glob will find *.c files produced by Cython so I don't add above files
     extsrcs = Flatten([MyGlob("pyext/*."+ext, source=True, strings=True, recursive=True) for ext in _cplusplus_ext])
     if extsrcs :
 
-        trace ( "pyextsrc = "+str(map(str, extsrcs)), "SConscript", 2 )
+        trace ( "pyextsrc = "+str(list(map(str, extsrcs))), "SConscript", 2 )
 
         pydir = env['PYDIR']
 
@@ -234,7 +234,7 @@ def standardPyExt( env, **kw ) :
         # if package builds standard library then add it to the link
         libs = DefaultEnvironment()['PKG_TREE_LIB'].get(pkg, [])
         if libs: libs = [pkg]
-        trace ( "pyext libs = "+str(map(str, libs)), "SConscript", 2 )
+        trace ( "pyext libs = "+str(list(map(str, libs))), "SConscript", 2 )
         extmod = env.PythonExtension ( extmodname, source=objects, LIBS=libs)
         iextmod = env.Install ( pydir, source=extmod )
         DefaultEnvironment()['ALL_TARGETS']['LIBS'].extend ( iextmod )
@@ -316,7 +316,7 @@ def standardTests( env, **kw ) :
         utests = [t for t in utests if os.path.basename(str(t)) not in utestsexcl]
 
     # make new unit test target
-    trace ( "utests = "+str(map(str,utests)), "SConscript", 2 )
+    trace ( "utests = "+str(list(map(str,utests))), "SConscript", 2 )
     for u in utests :
         t = env.UnitTest ( str(u)+'.utest', u )
         DefaultEnvironment()['ALL_TARGETS']['TESTS'].extend( t )
@@ -332,7 +332,7 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
     # make list of binaries and their dependencies if it has not been passed to us
     bins = kw.get(binenv,{})
     if bins :
-        for k in bins.iterkeys() :
+        for k in bins :
             src = bins[k]
             if isinstance(src,(six.binary_type, six.text_type)) : src = src.split()
             src = [ _normbinsrc(appdir,s) for s in src ]
@@ -347,7 +347,7 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
     targets = []
     if bins :
 
-        trace ( "bins = "+str(map(str,bins)), "SConscript", 2 )
+        trace ( "bins = "+str(list(map(str,bins))), "SConscript", 2 )
 
         bindir = env['BINDIR']
 
@@ -359,7 +359,7 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
         if 'CCFLAGS' in kw:
             binkw['CCFLAGS'] = env['CCFLAGS'] + ' ' + kw['CCFLAGS']
 
-        for bin, srcs in bins.iteritems() :
+        for bin, srcs in bins.items() :
 
             b = env.Program( bin, source=srcs, **binkw )
             setPkgBins ( kw['package'], b[0] )
@@ -384,7 +384,7 @@ def _standardScripts( env, appdir, binenv, installdir, **kw ) :
     else :
         scripts = [ _normbinsrc(appdir,s) for s in scripts ]
 
-    trace ( "scripts = "+str(map(str,scripts)), "SConscript", 2 )
+    trace ( "scripts = "+str(list(map(str,scripts))), "SConscript", 2 )
 
     # Scripts are installed in 'installdir' directory
     targets = []

@@ -20,7 +20,7 @@ from SConsTools.scons_functions import *
 def _fmtList(lst):
     return '[' + ','.join(map(str, lst)) + ']'
 
-class _makeReleaseInstall:
+class _makeReleaseInstall(object):
 
     def __call__(self, target, source, env) :
         """Target should be a single file, no source is needed"""

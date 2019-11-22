@@ -301,7 +301,7 @@ def adjustPkgDeps():
     pkg_tree.update( env['PKG_TREE'] )
 
     # evaluate package dependencies for libraries
-    for pkg, libs in env['PKG_TREE_LIB'].iteritems() :
+    for pkg, libs in env['PKG_TREE_LIB'].items() :
         for lib in libs:
 
             trace ( "checking dependencies for library "+str(lib), "adjustPkgDeps", 4 )
@@ -316,14 +316,14 @@ def adjustPkgDeps():
             # does not need mysql client library
             if pkg == "RdbMySQL": deps.discard("mysql")
 
-            trace ( "package "+pkg+" deps = " + str(map(str,deps)), "adjustPkgDeps", 4 )
+            trace ( "package "+pkg+" deps = " + str(list(map(str,deps))), "adjustPkgDeps", 4 )
             setPkgDeps ( pkg, deps )
 
             # add all libraries from the packages
             for d in deps :
                 libs = pkg_tree.get(d,{}).get( 'LIBS', [] )
                 lib.env['LIBS'].extend ( libs )
-            trace ( str(lib)+" libs = " + str(map(str,lib.env['LIBS'])), "adjustPkgDeps", 4 )
+            trace ( str(lib)+" libs = " + str(list(map(str,lib.env['LIBS']))), "adjustPkgDeps", 4 )
 
             #
             # This is a hack to tell scons to rescan the library, otherwise
@@ -336,7 +336,7 @@ def adjustPkgDeps():
                 lib.implicit = None
 
     # iterate over all binaries
-    for pkg, bins in env['PKG_TREE_BINS'].iteritems() :
+    for pkg, bins in env['PKG_TREE_BINS'].items() :
         for bin in bins :
 
             trace ( "checking dependencies for binary "+str(bin), "adjustPkgDeps", 4 )
@@ -350,13 +350,13 @@ def adjustPkgDeps():
             alldeps.reverse()
 
             # now get all their libraries and add to the binary
-            trace ( str(bin)+" deps = " + str(map(str,alldeps)), "adjustPkgDeps", 4 )
+            trace ( str(bin)+" deps = " + str(list(map(str,alldeps))), "adjustPkgDeps", 4 )
             for d in alldeps :
                 libs = pkg_tree.get(d,{}).get( 'LIBS', [] )
                 libpath = pkg_tree.get(d,{}).get( 'LIBDIRS', [] )
                 bin.env['LIBS'].extend ( libs )
                 bin.env['LIBPATH'].extend ( libpath )
-            trace ( str(bin)+" libs = " + str(map(str,bin.env['LIBS'])), "adjustPkgDeps", 4 )
+            trace ( str(bin)+" libs = " + str(list(map(str,bin.env['LIBS']))), "adjustPkgDeps", 4 )
 
             #
             # This is a hack to tell scons to rescan the binary, otherwise
@@ -382,11 +382,11 @@ class PrintDependencies(object):
 
         deptree = {}
         if self.reverse:
-            for pkg in self.tree.keys():
+            for pkg in self.tree:
                 for dep in self.tree[pkg].get('DEPS', []):
                     deptree.setdefault(dep, []).append(pkg)
         else:
-            for pkg in self.tree.keys():
+            for pkg in self.tree:
                 deps = self.tree[pkg].get('DEPS', [])
                 deptree[pkg] = deps
 

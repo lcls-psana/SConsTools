@@ -20,7 +20,7 @@ from SConsTools.scons_functions import *
 def _fmtList ( lst ):
     return '[' + ','.join(map(str, lst)) + ']'
 
-class _pyCompile :
+class _pyCompile(object) :
     
     def __call__( self, target, source, env ) :
         """Both target and source should be a single file"""

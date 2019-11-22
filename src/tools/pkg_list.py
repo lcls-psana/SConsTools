@@ -21,7 +21,7 @@ from SConsTools.scons_functions import *
 def _fmtList(lst):
     return '[' + ','.join(map(str, lst)) + ']'
 
-class _makePkgList:
+class _makePkgList(object):
 
     def __call__(self, target, source, env) :
         """Target should be a single file, no source is needed"""
@@ -39,7 +39,7 @@ class _makePkgList:
         out = open(target, "w")
 
         # build requirements list
-        for pkg, pkginfos in env['EXT_PACKAGE_INFO'].iteritems():
+        for pkg, pkginfos in env['EXT_PACKAGE_INFO'].items():
             trace("package %s, pkginfos %s" % (pkg, pkginfos), "makePkgList", 4)
             for pkginfo in pkginfos:
                 pkginfo = [env.subst(info) for info in pkginfo]
