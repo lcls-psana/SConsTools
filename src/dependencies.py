@@ -40,6 +40,7 @@ from __future__ import print_function
 import os
 import sys
 import re
+import six
 import cPickle
 from pprint import *
 
@@ -198,11 +199,11 @@ def addPkgLibs ( pkg, libs, libdirs = [] ):
     env = DefaultEnvironment()
     if libs :
         pkg_info = env['PKG_TREE'].setdefault( pkg, {} )
-        if isinstance(libs,(str,unicode)) : libs = libs.split()
+        if isinstance(libs,(six.binary_type,six.text_type)) : libs = libs.split()
         pkg_info.setdefault('LIBS', []).extend(libs)
     if libdirs :
         pkg_info = env['PKG_TREE'].setdefault( pkg, {} )
-        if isinstance(libdirs,(str,unicode)) : libdirs = libdirs.split()
+        if isinstance(libdirs,(six.binary_type,six.text_type)) : libdirs = libdirs.split()
         pkg_info.setdefault('LIBDIRS', []).extend(libdirs)
 
 #
@@ -230,7 +231,7 @@ def setPkgDeps ( pkg, deps ):
     env = DefaultEnvironment()
     if deps : 
         pkg_info = env['PKG_TREE'].setdefault( pkg, {} )
-        if isinstance(deps,(str,unicode)) : deps = deps.split()
+        if isinstance(deps,(six.binary_type,six.text_type)) : deps = deps.split()
         # do not include self-dependencies
         pkg_info['DEPS'] = [ d for d in deps if d != pkg ]
         trace("setPkgDeps: pkg=%s deps=%s" % (pkg, ','.join(pkg_info['DEPS'])), "dependencies", 3)

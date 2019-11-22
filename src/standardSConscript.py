@@ -8,7 +8,7 @@
 
 import os
 import sys
-import types
+import six
 from pprint import *
 from os.path import join as pjoin
 
@@ -34,7 +34,7 @@ def _normbinsrc ( dir, f ):
 def _getkwlist ( kw, name ):
     if name in kw :
         res = kw[name]
-        if isinstance(res,(str,unicode)) : res = res.split()
+        if isinstance(res,(six.binary_type, six.text_type)) : res = res.split()
         return res
     return []
 
@@ -95,16 +95,16 @@ def standardSConscript( **kw ) :
     pymods = filter(None, [pymod, pyext])
     defdoc = {'doxy-all': pkg, 'pydoc-all': pymods}
     docgen = kw.get('DOCGEN', defdoc)
-    if isinstance(docgen, types.StringTypes):
+    if isinstance(docgen, (six.binary_type, six.text_type)):
         # string may contain a list of names
         docgen = docgen.split()
-    if isinstance(docgen, types.ListType):
+    if isinstance(docgen, list):
         # make dict out of list, value is package name
         docgen = dict([(k, pkg) for k in docgen])
     for gen, dir in docgen.items():
         if dir:
             env = DefaultEnvironment()
-            if isinstance(dir, types.StringTypes):
+            if isinstance(dir, (six.binary_type, six.text_type)):
                 # string may contain a list of names
                 dir = dir.split()
             for d in dir:
@@ -334,7 +334,7 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
     if bins :
         for k in bins.iterkeys() :
             src = bins[k]
-            if isinstance(src,(str,unicode)) : src = src.split()
+            if isinstance(src,(six.binary_type, six.text_type)) : src = src.split()
             src = [ _normbinsrc(appdir,s) for s in src ]
             bins[k] = src
     else :

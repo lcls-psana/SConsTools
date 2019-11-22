@@ -9,7 +9,6 @@ from __future__ import print_function
 
 import os
 import sys
-import types
 from os.path import join as pjoin
 
 from SCons.Defaults import *

@@ -8,7 +8,6 @@
 
 import os
 import sys
-import types
 from os.path import join as pjoin
 from fnmatch import fnmatch
 

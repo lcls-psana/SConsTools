@@ -8,7 +8,7 @@
 
 import os
 import sys
-import types
+import six
 from os.path import join as pjoin
 from fnmatch import fnmatch
 
@@ -68,7 +68,7 @@ def _glob(dir, patterns):
         return os.listdir(dir)
 
     # patterns could be space-separated string of patterns
-    if isinstance(patterns, (str, unicode)) :
+    if isinstance(patterns, (six.binary_type, six.text_type)) :
         patterns = patterns.split()
     if not patterns : return []
 
@@ -283,7 +283,7 @@ def standardExternalPackage(package, **kw) :
     else:
         if 'PKGINFO' in kw:
             pkginfo = kw.get('PKGINFO')
-            if isinstance(pkginfo, types.StringTypes):
+            if isinstance(pkginfo, (six.binary_type, six.text_type)):
                 # if contains literal $SIT_ARCH.found replace it with real arch
                 pkginfo = pkginfo.replace('$SIT_ARCH.found', arch)
                 pkginfo = tuple(pkginfo,)
@@ -308,16 +308,16 @@ def standardExternalPackage(package, **kw) :
     #
     docgen = kw.get('DOCGEN')
     if docgen:
-        if isinstance(docgen, types.StringTypes):
+        if isinstance(docgen, (six.binary_type, six.text_type)):
             # string may contain a list of names
             docgen = docgen.split()
-        if isinstance(docgen, types.ListType):
+        if isinstance(docgen, list):
             # make dict out of list, value is package name
             docgen = dict([(k, pkgBasename) for k in docgen])
         for gen, dir in docgen.items():
             if dir:
                 env = DefaultEnvironment()
-                if isinstance(dir, types.StringTypes):
+                if isinstance(dir, (six.binary_type, six.text_type)):
                     # string may contain a list of names
                     dir = dir.split()
                 for d in dir:
