@@ -15,7 +15,7 @@ from os.path import join as pjoin
 from SCons.Defaults import *
 from SCons.Script import *
 
-from trace import *
+from SConsTools.trace import *
 
 def get_conda_env_path(fail_if_not_conda=True):
     '''conda used to use CONDA_ENV_PATH, and now it is CONDA_PREFIX,

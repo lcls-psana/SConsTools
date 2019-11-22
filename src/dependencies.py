@@ -49,9 +49,9 @@ from pprint import *
 
 from SCons.Script import *
 
-from trace import *
-from scons_functions import *
-from scons_env import get_conda_env_path
+from SConsTools.trace import *
+from SConsTools.scons_functions import *
+from SConsTools.scons_env import get_conda_env_path
 
 def which_pdsdata_pkg_for_file_in_pdsdata(f):
     # .../arch/$SIT_ARCH/geninc/pdsdata/package/File

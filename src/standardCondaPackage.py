@@ -17,9 +17,9 @@ from SCons.Script import *
 from SConsTools.trace import *
 from SConsTools.dependencies import *
 
-from scons_functions import fail, warning
-from CondaMeta import CondaMeta
-from standardExternalPackage import standardExternalPackage
+from SConsTools.scons_functions import fail, warning
+from SConsTools.CondaMeta import CondaMeta
+from SConsTools.standardExternalPackage import standardExternalPackage
 
 #
 # This is an interface package to conda packages. We find the include

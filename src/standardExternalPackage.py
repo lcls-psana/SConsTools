@@ -18,7 +18,7 @@ from SCons.Script import *
 from SConsTools.trace import *
 from SConsTools.dependencies import *
 
-from scons_functions import fail, warning
+from SConsTools.scons_functions import fail, warning
 from SConsTools.CondaMeta import CondaMeta
 
 #

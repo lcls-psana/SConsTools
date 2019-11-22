@@ -15,7 +15,7 @@ from SCons.Defaults import *
 
 from SConsTools.trace import *
 
-from scons_functions import fail, warning
+from SConsTools.scons_functions import fail, warning
 
 def prefixForBuildExternal(pkg):
     # hack, should be way to do this within scons

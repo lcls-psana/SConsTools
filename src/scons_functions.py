@@ -11,7 +11,7 @@ import os
 import sys
 from os.path import join as pjoin
 
-from trace import *
+from SConsTools.trace import *
 
 from SCons.Defaults import *
 from SCons.Script import *
