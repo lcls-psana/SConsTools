@@ -41,7 +41,10 @@ import os
 import sys
 import re
 import six
-import cPickle
+try:
+  import cPickle as pickle
+except ImportError:
+  import pickle
 from pprint import *
 
 from SCons.Script import *
@@ -244,7 +247,7 @@ def storePkgDeps ( fileName ):
     env = DefaultEnvironment()
     trace ( 'Storing release dependencies in file %s' % fileName, 'storePkgDeps', 2 )
     f = open ( fileName, 'wb' )
-    cPickle.dump( env['PKG_TREE'], f )
+    pickle.dump( env['PKG_TREE'], f )
     f.close()
 
 #
@@ -255,7 +258,7 @@ def loadPkgDeps ( fileName  ):
     env = DefaultEnvironment()
     trace ( 'Loading release dependencies from file %s' % fileName, 'loadPkgDeps', 2 )
     f = open ( fileName, 'rb' )
-    env['PKG_TREE_BASE'].update( cPickle.load( f ) )
+    env['PKG_TREE_BASE'].update( pickle.load( f ) )
     f.close()
 
 #
