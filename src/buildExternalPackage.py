@@ -30,7 +30,7 @@ def buildExternalPackage(pkg, buildcmds, PREFIX, ONE_TARGET,
     assert startdir in ['pkg', 'parent']
     env = DefaultEnvironment()
     assert env.get('CONDA',False), "not conda build"
-    if env['SKIP_BUILD_EXT']: 
+    if env['SKIP_BUILD_EXT']:
         return
     orig_dir = os.path.abspath(os.curdir)
     release_dir = os.path.split(orig_dir)[0]
@@ -48,7 +48,7 @@ def buildExternalPackage(pkg, buildcmds, PREFIX, ONE_TARGET,
     else:
         os.chdir(extpkgs_dir)
 
-    
+
     for cmd in buildcmds:
         print(cmd)
         assert 0 == os.system(cmd)

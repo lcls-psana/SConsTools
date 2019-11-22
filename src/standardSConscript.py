@@ -43,7 +43,7 @@ def _getpkg ( kw ) :
     pkg = kw.get('package', None )
     if not pkg : pkg = os.path.basename(os.getcwd())
     return pkg
-    
+
 
 #
 # This is the content of the standard SConscript
@@ -63,8 +63,8 @@ def standardSConscript( **kw ) :
         CCFLAGS - additional flags passed to C/C++ compilers
         NEED_QT - set to True to enable Qt support
         PHPDIR - either string or dictionary, will link directory to arch/../php/ area
-        DOCGEN   - if this is is a string or list of strings then it should be name(s) of document 
-                   generators, otherwise it is a dict with generator name as key and a list of 
+        DOCGEN   - if this is is a string or list of strings then it should be name(s) of document
+                   generators, otherwise it is a dict with generator name as key and a list of
                    file/directory names as values (may also be a string).
     """
 
@@ -74,7 +74,7 @@ def standardSConscript( **kw ) :
     ukw = kw.copy()
     ukw['package'] = pkg
     if 'env' in kw: del ukw['env']
-    
+
     env = DefaultEnvironment().Clone()
     if kw.get('NEED_QT', False):
         # extend environment with QT stuff
@@ -83,7 +83,7 @@ def standardSConscript( **kw ) :
         ukw.setdefault('LIBPATH', []).append(env['QT4_LIBDIR'])
 
         standardMoc( env, **ukw )
-        
+
     standardLib( env, **ukw )
     pymod = standardPyLib( env, **ukw )
     pyext = standardPyExt( env, **ukw )
@@ -115,10 +115,10 @@ def standardSConscript( **kw ) :
 # Process include/ directory, run moc on any include file which contains Q_OBJECT
 #
 def standardMoc( env, **kw ) :
-    
+
     pkg = _getpkg( kw )
-    
-    # get headers    
+
+    # get headers
     headers = Glob("include/*.h", source=True)
     headers = [str(h) for h in headers]
 
@@ -134,15 +134,15 @@ def standardMoc( env, **kw ) :
 # Process src/ directory, make library from all compilable files
 #
 def standardLib( env, **kw ) :
-    
+
     libsrcs = Flatten ( [ Glob("src/*."+ext, source=True, strings=True ) for ext in _cplusplus_ext ] )
     libsrcs.sort()
     if libsrcs :
-        
+
         trace ( "libsrcs = "+str(map(str,libsrcs)), "SConscript", 2 )
 
         pkg = _getpkg( kw )
-        
+
         libdir = env['LIBDIR']
         extalibs = _getkwlist ( kw, 'LIBS' )
         extalibpath = _getkwlist ( kw, 'LIBPATH' )
@@ -156,14 +156,14 @@ def standardLib( env, **kw ) :
         lib = env.SharedLibrary ( pkg, source=libsrcs, **binkw )
         ilib = env.Install ( libdir, source=lib )
         DefaultEnvironment()['ALL_TARGETS']['LIBS'].extend ( ilib )
-        
+
         # get the list of libraries need for this package
         libs = [pkg] + extalibs
         addPkgLib ( pkg, lib[0] )
         addPkgLibs ( pkg, libs, extalibpath )
-        
+
         return lib
-        
+
 #
 # Process src/ directory, link python sources
 #
@@ -171,9 +171,9 @@ def standardPyLib( env, **kw ) :
 
     pysrcs = Glob("src/*.py", source=True, strings=True )
     if pysrcs :
-        
+
         pkg = _getpkg( kw )
-        
+
         pydir = env['PYDIR']
 
         trace ( "pysrcs = "+str(map(str,pysrcs)), "SConscript", 2 )
@@ -181,7 +181,7 @@ def standardPyLib( env, **kw ) :
         # python files area installed into python/Package
         doinit = True
         for src in pysrcs :
-            
+
             # make symlink for every .py file and compile it into .pyc
             basename = os.path.basename(src)
             if basename == "__init__.py" : doinit = False
@@ -210,7 +210,7 @@ def standardPyExt( env, **kw ) :
 
     pkg = _getpkg( kw )
 
-    # check for Cython files first    
+    # check for Cython files first
     cysrcs = Flatten([MyGlob("pyext/*."+ext, source=True, strings=True, recursive=True) for ext in _cython_ext])
     trace ( "cysrcs = "+str(map(str, cysrcs)), "SConscript", 2 )
     extsrcs = [env.Cython(src) for src in cysrcs]
@@ -219,9 +219,9 @@ def standardPyExt( env, **kw ) :
     # this glob will find *.c files produced by Cython so I don't add above files
     extsrcs = Flatten([MyGlob("pyext/*."+ext, source=True, strings=True, recursive=True) for ext in _cplusplus_ext])
     if extsrcs :
-        
+
         trace ( "pyextsrc = "+str(map(str, extsrcs)), "SConscript", 2 )
-        
+
         pydir = env['PYDIR']
 
         extmodname = kw.get('PYEXTMOD', pkg)
@@ -238,16 +238,16 @@ def standardPyExt( env, **kw ) :
         extmod = env.PythonExtension ( extmodname, source=objects, LIBS=libs)
         iextmod = env.Install ( pydir, source=extmod )
         DefaultEnvironment()['ALL_TARGETS']['LIBS'].extend ( iextmod )
-        
+
         # get the list of libraries need for this package
         addPkgLib ( pkg, extmod[0] )
-        
+
         return extmodname
 
 #
 # Process content of PHPDIR argument, create directories in $ARCHDIR/php.
 # If PHPDIR is a dictionary then it will create symlinks
-#    $ARCHDIR/php/<key> -> Package/<value> 
+#    $ARCHDIR/php/<key> -> Package/<value>
 # for each key:value pair in the dictionary. If PHPDIR is a string it will
 # create symlink
 #    $ARCHDIR/php/Package -> Package/PHPDIR
@@ -256,9 +256,9 @@ def standardPhpLib( env, **kw ) :
 
     phpdir = kw.get('PHPDIR')
     if not phpdir: return
-    
+
     pkg = _getpkg( kw )
-    
+
     # if PHPDIR is not a dict then make it a dict with a key equal to package name
     if not isinstance(phpdir, dict): phpdir = { pkg: phpdir }
 
@@ -274,7 +274,7 @@ def standardPhpLib( env, **kw ) :
 # Process app/ directory, install all scripts
 #
 def standardScripts( env, **kw ) :
-    
+
     targets = _standardScripts ( env, 'app', 'SCRIPTS', env['BINDIR'], **kw )
     DefaultEnvironment()['ALL_TARGETS']['BINS'].extend( targets )
 
@@ -282,7 +282,7 @@ def standardScripts( env, **kw ) :
 # Process app/ directory, build all executables from C++ sources
 #
 def standardBins( env, **kw ) :
-    
+
     targets = _standardBins ( env, 'app', 'BINS', True, **kw )
     DefaultEnvironment()['ALL_TARGETS']['BINS'].extend( targets )
 
@@ -290,7 +290,7 @@ def standardBins( env, **kw ) :
 # Process test/ directory, build all executables from C++ sources
 #
 def standardTests( env, **kw ) :
-    
+
     #trace ( "Build env = "+pformat(env.Dictionary()), "<top>", 7 )
 
     # binaries in the test/ directory
@@ -300,7 +300,7 @@ def standardTests( env, **kw ) :
     # also scripts in the test/ directory
     targets1 = _standardScripts ( env, 'test', 'TEST_SCRIPTS', "", **kw )
     DefaultEnvironment()['ALL_TARGETS']['TESTS'].extend( targets1 )
-    
+
     targets = targets0 + targets1
 
     # make a list of unit tests
@@ -342,7 +342,7 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
         for f in cpps :
             bin = os.path.splitext(os.path.basename(f))[0]
             bins[bin] = [ f ]
-            
+
     # make rules for the binaries
     targets = []
     if bins :
@@ -350,7 +350,7 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
         trace ( "bins = "+str(map(str,bins)), "SConscript", 2 )
 
         bindir = env['BINDIR']
-        
+
         # Program options
         binkw = {}
         binkw['LIBS'] = _getkwlist ( kw, 'LIBS' )
@@ -358,16 +358,16 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
         env.Prepend(LIBPATH = _getkwlist ( kw, 'LIBPATH' ))
         if 'CCFLAGS' in kw:
             binkw['CCFLAGS'] = env['CCFLAGS'] + ' ' + kw['CCFLAGS']
-    
+
         for bin, srcs in bins.iteritems() :
-            
+
             b = env.Program( bin, source=srcs, **binkw )
             setPkgBins ( kw['package'], b[0] )
-            if install : 
+            if install :
                 b = env.Install ( bindir, source=b )
-                
+
             targets.extend( b )
-            
+
     return targets
 
 #
@@ -388,7 +388,7 @@ def _standardScripts( env, appdir, binenv, installdir, **kw ) :
 
     # Scripts are installed in 'installdir' directory
     targets = []
-    for s in scripts : 
+    for s in scripts :
         dst = pjoin(installdir,os.path.basename(s))
         trace ( "install script = "+dst, "SConscript", 2 )
         script = env.ScriptInstall(dst, s)

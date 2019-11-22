@@ -1,6 +1,6 @@
 #===============================================================================
 #
-# SConscript function for standard conda package 
+# SConscript function for standard conda package
 #
 # $Id$
 #
@@ -43,7 +43,7 @@ def _filter_includes(includes, pkg):
         if incfile.startswith('include' + os.path.sep):
             filtered.append(incfile[8:])
         else:
-            trace('filtereing out file %s for pkg %s' % (incfile, pkg), 
+            trace('filtereing out file %s for pkg %s' % (incfile, pkg),
                   'SConscript', 3)
     return filtered
 
@@ -51,8 +51,8 @@ def _commonDirectory(filenames):
     commonprefix = os.path.commonprefix(filenames)
     if commonprefix.endswith(os.path.sep):
         return commonprefix[0:-1]
-        
-    # all the file basenames start with the same thing (like 'H5_') 
+
+    # all the file basenames start with the same thing (like 'H5_')
     # strip that off to find the common directory
     flds = commonprefix.split(os.path.sep)
     flds=flds[0:-1]
@@ -62,17 +62,17 @@ def _file_depth(fname):
     return len(fname.split(os.path.sep))
 
 def standardCondaPackage(pkg, **kw) :
-    """ Creates a external package for the SConsTools build system from a conda package. 
+    """ Creates a external package for the SConsTools build system from a conda package.
     The external package can have includes and libraries, but no binaries or
     Python - those come from the conda environment.
 
     By default, reads the conda meta for the package to identify the includes (.h
-    files), dynamic libries, and dependencies. The include files will be added to 
+    files), dynamic libries, and dependencies. The include files will be added to
     the release through the geninc mechanism, while the libraries and dependencies will
     be maintained in the sconstools build information.
 
-        INCDIR  - directly specify include dir relative to conda env prefix - 
-                  for example 'include/boost' 
+        INCDIR  - directly specify include dir relative to conda env prefix -
+                  for example 'include/boost'
         INCLUDES - directly specify list of includes to copy (space-separated list of patterns)
                    relative to INCDIR (if given) or relative to conda env prefix)
                    These includes must be shallow, i.e, only file in INCDIR are links, not
@@ -80,7 +80,7 @@ def standardCondaPackage(pkg, **kw) :
         INCLUDE_EXTS - if neither INCDIR or INCLUDES is specified, all conda meta files
                        with these extensions are used (defaults to .h)
         COPYLIBS - library names to copy, deafults to none
-        LINKLIBS - library names to link, defaults to all dynlibs in conda meta, set to 
+        LINKLIBS - library names to link, defaults to all dynlibs in conda meta, set to
                    None for no lib linking
         REQUIRED_PKGLIBS - libraries that must be linked to when using this package.
                            defaults to all package names in dynlibs of conda meta
@@ -90,8 +90,8 @@ def standardCondaPackage(pkg, **kw) :
         DEPS     - names of other packages that we depend upon, if not specified, will look
                    at condaMeta to identify dependencies. Set to None to explicity do no
                    dependencies.
-        DOCGEN   - if this is is a string or list of strings then it should be name(s) of document 
-                   generators, otherwise it is a dict with generator name as key and a list of 
+        DOCGEN   - if this is is a string or list of strings then it should be name(s) of document
+                   generators, otherwise it is a dict with generator name as key and a list of
                    file/directory names as values (may also be a string).
     """
     condaMeta = CondaMeta(pkg)
@@ -99,32 +99,32 @@ def standardCondaPackage(pkg, **kw) :
     trace("standardCondaPackage pkg=%s prefix=%s" % (pkg, PREFIX), "SConscript", 1)
     incdir = kw.get('INCDIR', _noArg)
     includes = kw.get('INCLUDES', _noArg)
-    
+
     if (incdir is _noArg) and (includes is _noArg):
         include_exts = _as_list_strings_or_none(kw.get('INCLUDE_EXTS', ['.h']))
         include_subdir = 'include'
         includes = condaMeta.includes(extensions=include_exts, subdirs=[include_subdir])
-        
-        trace("standardCondaPackage pkg=%s auto includes - %d files" % 
+
+        trace("standardCondaPackage pkg=%s auto includes - %d files" %
               (pkg, len(includes)), "SConscript", 1)
         if includes:
             commondir = _commonDirectory(includes)
             dirlist = commondir.split(os.path.sep)
 
             # now we decide if we want to link a directory in the sconstools release, or
-            # link a set of files. If we see that all includes are in a directory, we 
+            # link a set of files. If we see that all includes are in a directory, we
             # will link it. However they may all be in a top level conda directory like
             # include. We don't want that. We want a depth of at least two to all the
             # includes, and we want the package name in the path.
             if len(dirlist)>1 and pkg in dirlist:
                 INCDIR = commondir
-                trace("  pkg=%s auto setting INCDIR=%s" % (pkg, INCDIR), "SConscript", 2)                
+                trace("  pkg=%s auto setting INCDIR=%s" % (pkg, INCDIR), "SConscript", 2)
             else:
-                trace("  pkg=%s header files under 'include' subdir not in common dir" % 
+                trace("  pkg=%s header files under 'include' subdir not in common dir" %
                       (pkg,), "SConscript", 2)
                 INCDIR = include_subdir
                 INCLUDES = [os.path.split(fname)[1] for fname in includes if _file_depth(fname)==1]
-                trace("  pkg=%s auto setting INCLUDES to list of %d files and INCDIR=%s" % 
+                trace("  pkg=%s auto setting INCLUDES to list of %d files and INCDIR=%s" %
                       (pkg, len(INCLUDES), INCDIR), "SConscript", 2)
     else:
         trace("  pkg=%s one of INCDIR or INCLUDES specified" % pkg, "SConscript", 2)
@@ -136,10 +136,10 @@ def standardCondaPackage(pkg, **kw) :
 
     copylibs = kw.get('COPYLIBS',_noArg)
     linklibs = kw.get('LINKLIBS',_noArg)
-    
+
     if (copylibs is _noArg) and (linklibs is _noArg):
         LINKLIBS = condaMeta.dynlibs()
-        trace("  pkg=%s auto setting LINKLIBS to list of %d files" % 
+        trace("  pkg=%s auto setting LINKLIBS to list of %d files" %
               (pkg,len(LINKLIBS)), "SConscript", 2)
 
     metaPkgs = condaMeta.pkglibs()

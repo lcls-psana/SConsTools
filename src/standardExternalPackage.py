@@ -52,7 +52,7 @@ def _prefix(prefix, env):
     arch = env['SIT_ARCH_BASE_OPT']
     if os.path.isdir(pjoin(prefix, arch)) and not os.path.islink(pjoin(prefix, arch)):
         return (prefix, arch)
-    
+
     # Then try $SIT_ARCH_BASE
     arch = env['SIT_ARCH_BASE']
     if os.path.isdir(pjoin(prefix, arch)) and not os.path.islink(pjoin(prefix, arch)):
@@ -108,7 +108,7 @@ def standardExternalPackage(package, **kw) :
         INCLUDES - include files to copy (space-separated list of patterns)
         PYDIR    - Python src directory, absolute or relative to PREFIX
         LINKPY   - Python files to link (patterns), or all files if not present
-        PYDIRSEP - if present and evaluates to True installs python code to a 
+        PYDIRSEP - if present and evaluates to True installs python code to a
                    separate directory arch/$SIT_ARCH/python/<package>
         LIBDIR   - libraries directory, absolute or relative to PREFIX
         COPYLIBS - library names to copy
@@ -120,8 +120,8 @@ def standardExternalPackage(package, **kw) :
         PKGINFO  - package information, such as RPM package name
         OPTIONAL - If true then missing directories do not cause build errors
         LOCAL    - If true, then we are trying to override a conda package with a local one
-        DOCGEN   - if this is is a string or list of strings then it should be name(s) of document 
-                   generators, otherwise it is a dict with generator name as key and a list of 
+        DOCGEN   - if this is is a string or list of strings then it should be name(s) of document
+                   generators, otherwise it is a dict with generator name as key and a list of
                    file/directory names as values (may also be a string).
     """
 
@@ -146,7 +146,7 @@ def standardExternalPackage(package, **kw) :
                           "wrap an existing conda package (instead of this function) or set the "
                           "environment variable SIT_EXTPKG_IN_MULTIPLE_LOC_OK=1 to try "
                           "to mask the conda version of the package, or pass LOCAL=True "
-                          "to this function. The two prefixes=\n'%s'\n'%s'") % 
+                          "to this function. The two prefixes=\n'%s'\n'%s'") %
                          (package, prefix, cm.prefix()))
                 else:
                     warning("external package %s exists in conda env" % package)
@@ -191,7 +191,7 @@ def standardExternalPackage(package, **kw) :
     # link python directory
     py_dir = _get_dir(package, 'PYDIR', kw, env, prefix)
     if py_dir is not None :
-        
+
         # make 'python' directory if not there yet
         archpy = Dir(env.subst("$PYDIR"))
         archpy = str(archpy)
