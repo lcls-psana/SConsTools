@@ -78,9 +78,9 @@ def standardSConscript( **kw ) :
     env = DefaultEnvironment().Clone()
     if kw.get('NEED_QT', False):
         # extend environment with QT stuff
-        env.Tool('qt4', toolpath = env['TOOLPATH'])
-        ukw.setdefault('LIBS', []).extend(env['QT4_LIBS'])
-        ukw.setdefault('LIBPATH', []).append(env['QT4_LIBDIR'])
+        env.Tool('qt5', toolpath = env['TOOLPATH'])
+        ukw.setdefault('LIBS', []).extend(env['QT5_LIBS'])
+        ukw.setdefault('LIBPATH', []).append(env['QT5_LIBDIR'])
 
         standardMoc( env, **ukw )
 

@@ -127,6 +127,7 @@ def buildEnv () :
     cpppath = ['.']   # this translates to package directory, not to top dir
     for r in all_sit_repos :
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc"))
+        cpppath.append(pjoin(r, "arch", sit_arch, "geninc", "python")) # FIXME is there a way to do this in the pytools/SConscript file instead of here?
         cpppath.append(pjoin(r, "include"))
     libpath = [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
     if env['CONDA']:
