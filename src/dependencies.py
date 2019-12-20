@@ -335,6 +335,11 @@ def adjustPkgDeps():
             if lib.env['LIBS'] :
                 lib.implicit = None
 
+	    # Hack to handle conda version of boost having the python version
+	    # in the filename
+            if env['CONDA'] and 'boost_python' in lib.env['LIBS']:
+                lib.env['LIBS'][lib.env['LIBS'].index('boost_python')] = 'boost_python%d%d'%(sys.version_info.major, sys.version_info.minor)
+
     # iterate over all binaries
     for pkg, bins in env['PKG_TREE_BINS'].items() :
         for bin in bins :
