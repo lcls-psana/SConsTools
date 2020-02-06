@@ -41,6 +41,7 @@ import os
 import sys
 import re
 import six
+import glob
 try:
   import cPickle as pickle
 except ImportError:
@@ -340,6 +341,13 @@ def adjustPkgDeps():
             if env['CONDA'] and 'boost_python' in lib.env['LIBS'] and sys.version_info.major >= 3:
                 lib.env['LIBS'][lib.env['LIBS'].index('boost_python')] = 'boost_python%d%d'%(sys.version_info.major, sys.version_info.minor)
 
+	    # Handle python libraries with extra 'm'. Python 3.8 and beyond dropped this
+            pystr = "python%d.%d"%(sys.version_info.major, sys.version_info.minor)
+            if pystr in lib.env['LIBS']:
+                LIBDIR  = lib.env['PYTHON_LIBDIR']
+                if not glob.glob(os.path.join(LIBDIR, "lib"+pystr+".so*")):
+                    lib.env['LIBS'] = [l if l != pystr else pystr + 'm' for l in lib.env['LIBS']]
+
     # iterate over all binaries
     for pkg, bins in env['PKG_TREE_BINS'].items() :
         for bin in bins :
@@ -372,6 +380,13 @@ def adjustPkgDeps():
             #
             if bin.env['LIBS'] :
                 bin.implicit = None
+
+	    # Handle python libraries with extra 'm'. Python 3.8 and beyond dropped this
+            pystr = "python%d.%d"%(sys.version_info.major, sys.version_info.minor)
+            if pystr in bin.env['LIBS']:
+                LIBDIR  = bin.env['PYTHON_LIBDIR']
+                if not glob.glob(os.path.join(LIBDIR, "lib"+pystr+".so*")):
+                    bin.env['LIBS'] = [l if l != pystr else pystr + 'm' for l in bin.env['LIBS']]
 
 
 class PrintDependencies(object):
