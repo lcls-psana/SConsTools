@@ -33,6 +33,11 @@ def generate(env):
     env['PYTHON_BINDIR'] = pjoin(prefix, "bin")
     env['PYTHON_BIN'] = pjoin(env['PYTHON_BINDIR'], env['PYTHON'])
     env['SCRIPT_SUBS']['PYTHON'] = "/usr/bin/env python"
+
+    # Handle python versions that have an 'm' in their include directory.
+    # Python 3.8 and beyond has dropped the 'm'
+    if not os.path.exists(env['PYTHON_INCDIR']):
+        env['PYTHON_INCDIR'] += "m"
     
     #trace ( "Initialized psdm_python tool", "psdm_python", 2 )
 
