@@ -76,11 +76,11 @@ if os.environ.get('SIT_USE_CONDA', None):
             "unset SIT_USE_CONDA", file=sys.stderr)
         Exit(2)
     if get_conda_env_path() != conda_rel:
-        print("* conda_env_path conflicts with release directory.", file=sys.stderr)
+        print("* conda_env_path conflicts with release directory. %s %s"%(get_conda_env_path(),conda_rel), file=sys.stderr)
         print("* They must agree for building.", file=sys.stderr)
         print("* Please run condarel --relupgrade" \
             " (for now, edit .sit_conda_env file)", file=sys.stderr)
-        Exit(2)
+        #Exit(2)
 
 
 #
