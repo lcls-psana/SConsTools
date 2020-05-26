@@ -21,6 +21,10 @@ def get_conda_env_path(fail_if_not_conda=True):
     '''conda used to use CONDA_ENV_PATH, and now it is CONDA_PREFIX,
     would be good to switch to conda_api for this
     '''
+    if 'PREFIX' in os.environ:
+        # use this for the case where conda build has both build/host
+        # envs.  PREFIX seems to point to the host env.
+        return os.environ['PREFIX']
     if 'CONDA_PREFIX' in os.environ:
         return os.environ['CONDA_PREFIX']
     if 'CONDA_ENV_PATH' in os.environ:

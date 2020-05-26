@@ -20,6 +20,10 @@ def get_conda_env_path(fail_if_not_conda=True):
     '''conda used to use CONDA_ENV_PATH, and now it is CONDA_PREFIX,
     would be good to switch to conda_api for this
     '''
+    if 'PREFIX' in os.environ:
+        # use this for the case where conda build has both build/host
+        # envs.  PREFIX seems to point to the host env.
+        return os.environ['PREFIX']
     if 'CONDA_PREFIX' in os.environ:
         return os.environ['CONDA_PREFIX']
     if 'CONDA_ENV_PATH' in os.environ:
@@ -39,10 +43,9 @@ for envVar in ['SIT_ARCH', 'SIT_RELEASE']:
 if 'SIT_USE_CONDA' in os.environ:
     conda_env_path = get_conda_env_path() # will exit if can't find it
     path_dirs = os.environ.get('PATH','').split(os.path.pathsep)
-    print('**** cpo hack 1')
-    #if len(path_dirs)==0 or os.path.join(conda_env_path, 'bin') not in path_dirs[0:2]:
-    #    print("SIT_USE_CONDA defined but %s/bin is not at the first or second plath in the PATH" % conda_env_path, file=sys.stderr)
-    #    Exit(2)
+    if len(path_dirs)==0 or os.path.join(conda_env_path, 'bin') not in path_dirs[0:2]:
+        print("SIT_USE_CONDA defined but %s/bin is not at the first or second plath in the PATH" % conda_env_path, file=sys.stderr)
+        Exit(2)
 else:
     for envVar in ['SIT_ROOT']:
         if os.environ.get(envVar, None) is None:
@@ -81,8 +84,7 @@ if os.environ.get('SIT_USE_CONDA', None):
         print("* They must agree for building.", file=sys.stderr)
         print("* Please run condarel --relupgrade" \
             " (for now, edit .sit_conda_env file)", file=sys.stderr)
-	print('**** cpo hack 2')
-        #Exit(2)
+        Exit(2)
 
 
 #
