@@ -133,12 +133,11 @@ def buildEnv () :
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc"))
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc", "python")) # FIXME is there a way to do this in the pytools/SConscript file instead of here?
         cpppath.append(pjoin(r, "include"))
-    libpath = []
+    libpath = [pjoin(env['CONDA_ENV_PATH'],'lib')]
+    libpath += [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
     if env['CONDA']:
         libpath.append(pjoin(env['CONDA_ENV_PATH'],'lib'))
         cpppath.append(pjoin(env['CONDA_ENV_PATH'],'include'))
-    # cpo puts this after the CONDA_ENV_PATH stuff to help Translator to link
-    libpath += [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
     # set other variables in environment
     env.Replace(ARCHDIR=archdir,
                 ARCHINCDIR=archincdir,
