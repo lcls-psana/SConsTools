@@ -77,8 +77,8 @@ _boostPackages = {
         'thread' : 'boost_thread',
         'thread.hpp' : 'boost_thread',
         'test' : 'boost_unit_test_framework',
-        'python' : 'boost_python',
-        'python.hpp' : 'boost_python',
+        'python' : 'boost_python%d%d'%(sys.version_info.major, sys.version_info.minor),
+        'python.hpp' : 'boost_python%d%d'%(sys.version_info.major, sys.version_info.minor),
         }
 def _guessBoostPackage ( p ) :
     return _boostPackages.get ( p, 'boost' )
@@ -335,11 +335,6 @@ def adjustPkgDeps():
             #
             if lib.env['LIBS'] :
                 lib.implicit = None
-
-	    # Hack to handle conda version of boost having the python version
-	    # in the filename
-            if env['CONDA'] and 'boost_python' in lib.env['LIBS'] and sys.version_info.major >= 3:
-                lib.env['LIBS'][lib.env['LIBS'].index('boost_python')] = 'boost_python%d%d'%(sys.version_info.major, sys.version_info.minor)
 
 	    # Handle python libraries with extra 'm'. Python 3.8 and beyond dropped this
             pystr = "python%d.%d"%(sys.version_info.major, sys.version_info.minor)

@@ -21,6 +21,10 @@ def get_conda_env_path(fail_if_not_conda=True):
     '''conda used to use CONDA_ENV_PATH, and now it is CONDA_PREFIX,
     would be good to switch to conda_api for this
     '''
+    if 'PREFIX' in os.environ:
+        # use this for the case where conda build has both build/host
+        # envs.  PREFIX seems to point to the host env.
+        return os.environ['PREFIX']
     if 'CONDA_PREFIX' in os.environ:
         return os.environ['CONDA_PREFIX']
     if 'CONDA_ENV_PATH' in os.environ:
@@ -129,7 +133,8 @@ def buildEnv () :
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc"))
         cpppath.append(pjoin(r, "arch", sit_arch, "geninc", "python")) # FIXME is there a way to do this in the pytools/SConscript file instead of here?
         cpppath.append(pjoin(r, "include"))
-    libpath = [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
+    libpath = [pjoin(env['CONDA_ENV_PATH'],'lib')]
+    libpath += [ pjoin(r, "arch", sit_arch, "lib") for r in all_sit_repos ]
     if env['CONDA']:
         libpath.append(pjoin(env['CONDA_ENV_PATH'],'lib'))
         cpppath.append(pjoin(env['CONDA_ENV_PATH'],'include'))

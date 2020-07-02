@@ -153,6 +153,8 @@ def standardLib( env, **kw ) :
         binkw['LIBPATH'] = extalibpath + env['LIBPATH']
         if 'CCFLAGS' in kw:
             binkw['CCFLAGS'] = env['CCFLAGS'] + ' ' + kw['CCFLAGS']
+        if 'LINKFLAGS' in kw:
+            binkw['LINKFLAGS'] = env['LINKFLAGS'] + ' ' + kw['LINKFLAGS']
         lib = env.SharedLibrary ( pkg, source=libsrcs, **binkw )
         ilib = env.Install ( libdir, source=lib )
         DefaultEnvironment()['ALL_TARGETS']['LIBS'].extend ( ilib )
@@ -229,6 +231,8 @@ def standardPyExt( env, **kw ) :
         binkw = {}
         if 'CCFLAGS' in kw:
             binkw['CCFLAGS'] = env['CCFLAGS'] + ' ' + kw['CCFLAGS']
+        if 'LINKFLAGS' in kw:
+            binkw['LINKFLAGS'] = env['LINKFLAGS'] + ' ' + kw['LINKFLAGS']
 
         objects = [env.PythonObject(src, **binkw) for src in extsrcs]
         # if package builds standard library then add it to the link
@@ -358,6 +362,8 @@ def _standardBins( env, appdir, binenv, install, **kw ) :
         env.Prepend(LIBPATH = _getkwlist ( kw, 'LIBPATH' ))
         if 'CCFLAGS' in kw:
             binkw['CCFLAGS'] = env['CCFLAGS'] + ' ' + kw['CCFLAGS']
+        if 'LINKFLAGS' in kw:
+            binkw['LINKFLAGS'] = env['LINKFLAGS'] + ' ' + kw['LINKFLAGS']
 
         for bin, srcs in bins.items() :
 

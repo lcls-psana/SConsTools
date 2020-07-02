@@ -14,7 +14,7 @@ _ld_opt = { 'opt' : '',
 
 def generate(env):
     
-    os = env['SIT_ARCH_OS']
+    #os = env['SIT_ARCH_OS']
     comp = env['SIT_ARCH_COMPILER']
     opt = env['SIT_ARCH_OPT']
     
@@ -40,11 +40,14 @@ def generate(env):
         env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--enable-new-dtags')
 
     elif comp == 'gcc48' :
-        env['CC'] = 'gcc'
-        env['CXX'] = 'g++'
+        #env['CC'] = 'gcc'
+        #env['CXX'] = 'g++'
+        env['CC'] = os.environ['CC']
+        env['CXX'] = os.environ['CXX']
         env.Append(CCFLAGS = ' ' + _gcc_opt.get(opt,'') + ' -Wall')
         env.Append(CXXFLAGS = ' -Wno-invalid-offsetof -Wno-unused-local-typedefs')
-        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--copy-dt-needed-entries -Wl,--enable-new-dtags')
+        #env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,'') + ' -Wl,--copy-dt-needed-entries -Wl,--enable-new-dtags')
+        env.Append(LINKFLAGS = ' ' + _ld_opt.get(opt,''))
 
     elif comp in [ 'gcc53', 'gcc52', 'gcc51']:
         env['CC'] = 'gcc'
